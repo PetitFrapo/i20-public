@@ -9,3 +9,4 @@ main_bot.py contient le code qui sont des commandes.
 reactionroles.py et reactionrole_speedrun.py sont les Reaction Roles.
 Bonne navigation !
 PS : Ce n'est pas le code complet, il y a d'autres fichiers qui vous sont soit inutile, soit privés.
+PPS : Je mets pas le code à jour H24 ici hein rêvez pas
