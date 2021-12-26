@@ -6,7 +6,8 @@ import pytz
 import random
 from discord.ext import commands
 from dotenv import load_dotenv
-bot = commands.Bot(command_prefix=("i!", "I!"), help_command=None)
+bot = commands.Bot(command_prefix=("i!", "I!"))
+bot.remove_command("help")
 timezone = pytz.timezone("CET")
 load_dotenv(dotenv_path="config")
 
