@@ -76,7 +76,7 @@ async def quote(message):
     quotes = ["Je cite : J'ai pas la mouna, par Shizuku, dans la vidéo Let's Play Minish Cap Randomizer #2.", "Je cite : TU ES MON CHEVAL, par PetitFrapo, en MP avec Shizuku.", "Je cite : Il faut que j'aille au mont Gounegueule, par Shizuku, dans la vidéo du Let's Play #1, #1.2 et #2.", "Je cite : MAIS C'EST SUPER TA VIE, par Shizuku à un pauvre petit commercant de la cité d'Hyrule, dans la vidéo du Let's Play Minish Cap Randomizer #2.", "Je cite : Ils ont l'Ultra-Instinct ! ILS ONT L'ULTRA INSTINCT !!, par Shizuku, dans le Jeudi de la souffrance sur Deathtroid.", "Je cite : spoiler : c'est pour que ce soit pas un spoiler., par PetitFrapo, sur le salon bac-à-sable.", "Je cite : En vrai c'est pas évident de faire un truc moche et de le rendre stylé ^^, par Shizuku/Yvain, sur le salon chat-modos (auquel vous n'avez pas accès niark niark)."] 
     await message.channel.send(random.choice(quotes))
 
-@bot.command(name="say", description="Faites dire quelque chose à i20")
+@bot.command(name="say", description="Faites dire quelque chose à i20", aliases=["s"])
 async def say(ctx, *, textToSay):
     commandMessage = await ctx.channel.history(limit=1).flatten()
     for eachMessage in commandMessage:
@@ -95,7 +95,7 @@ async def say(ctx, *, textToSay):
     else:
         await ctx.channel.send(textToSay)
 
-@bot.command(name="date", help="romance.")
+@bot.command(name="date", help="romance.", aliases=["love", "rdv"])
 async def date(ctx, user: commands.MemberConverter="", user2: commands.MemberConverter=""):
     if user == "":
         await ctx.channel.send(f"{ctx.author.name} est en rendez-vous avec i20 !")
@@ -135,7 +135,7 @@ async def poll(ctx, question, option1, option2, option3="", option4=""):
         await message.add_reaction(emoji3)
         await message.add_reaction(emoji4)
         
-@bot.command(name="avatar", help="Prenez l'avatar de quelqu'un.")
+@bot.command(name="avatar", help="Prenez l'avatar de quelqu'un.", aliases=["pp", "pdp", "pfp"])
 async def avatar(ctx, *, user: discord.Member=""):
     if user == "":
         userAvatar = ctx.author.avatar_url
@@ -146,7 +146,7 @@ async def avatar(ctx, *, user: discord.Member=""):
         await ctx.channel.send(f"Voici l'avatar de {user.display_name}.")
         await ctx.channel.send(userAvatar)
         
-@bot.command(name="flip", help="Pile ou face ?")
+@bot.command(name="flip", help="Pile ou face ?", aliases=["pf"])
 async def flip(ctx):
     coin = random.choice(["heads", "tails"])
     await ctx.channel.send("Suspense...")
@@ -158,4 +158,10 @@ async def flip(ctx):
         await ctx.channel.send("La pièce est tombée sur face.")
         await ctx.channel.send("https://upload.wikimedia.org/wikipedia/fr/3/34/Piece-2-euros-commemorative-2012-france.png")
 
+@bot.command(name="bonk")
+async def bonk(ctx):
+    await ctx.send("B O N K")
+    await ctx.send("https://media.discordapp.net/attachments/858632881139875840/924339843771809802/IMG_3748.jpg")
+    
+        
 bot.run(os.getenv("TOKEN"))
