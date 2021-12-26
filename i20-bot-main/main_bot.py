@@ -6,7 +6,7 @@ import pytz
 import random
 from discord.ext import commands
 from dotenv import load_dotenv
-bot = commands.Bot(command_prefix=("i!", "I!"))
+bot = commands.Bot(command_prefix=("i!", "I!"), help_command=None)
 timezone = pytz.timezone("CET")
 load_dotenv(dotenv_path="config")
 
@@ -163,5 +163,40 @@ async def bonk(ctx):
     await ctx.send("B O N K")
     await ctx.send("https://media.discordapp.net/attachments/858632881139875840/924339843771809802/IMG_3748.jpg")
     
+        
+@bot.command(name="help", aliases=["?"])
+async def helptest(ctx, command=""):
+    com = command.lower()
+    if com == "":
+        embed = discord.Embed(title="Les commandes d'i20 :",
+                              color=0x110b7a,
+                              description="---\ni20 est un bot possédant plein de commandes, les voici :")
+        embed.add_field(name="Fun :",
+                        value="*__i!interesting__* : Intéressant...\n *__i!flip__* : Pile ou face ?\n *__i!meme__* : Génère un meme aléatoire.\n *__i!date__* : romance.\n *__i!ping__* : NOTIFICATION INTENSIFIES\n *__i!say__* : Faites dire quelque chose à i20 ! Ne dites pas de gros mots ou gare à vous !\n *__i!quote__* : Les citations cultes d'Yvain et PetitFrapo !",
+                        inline=False)
+
+        embed.add_field(name="Modération :",
+                        value="*__i!ban__* : B O N K le marteau\n *__i!unban__* : uaetram el K N O B\n *__i!kick__* : Pour kick les gens pas trétré genti\n *__i!clear__* : Supprime des messages du salon.",
+                        inline=False)
+        embed.add_field(name="Utile :",
+                        value="*__i!invite__* : Crée une invitation du serveur.\n *__i!avatar__* : Obtient l'avatar du membre.\n *__i!help__* : Affiche ce message.\n *__i!poll__* : Crée un sondage.",
+                        inline=False)
+        embed.add_field(name="__*Pour avoir plus de précision sur une commande, veuillez faire 'i!help nomDeLaCommande.*__", value="---", inline=False)
+    elif com == "avatar":
+        embed = discord.Embed(name="Avatar :", description="*__i!avatar__* : Pour prendre l’avatar de quelqu’un ou le sien, mentionnez celui dont vous souhaitez la pp. Prend en charge les jpgs.\n\n L'utilisation est **i!avatar {user}**.", colour=0x110b7a)
+    elif com == "clear":
+        embed = discord.Embed(name="Clear :", description="*__i!clear__* : Supprimez un certain nombre de messages dans le salon où la commande a été exécutée, insérez une valeur après pour renseigner le nombre de messages a supprimer. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!clear {number}**.", colour=0x110b7a)
+    elif com == "ban":
+        embed = discord.Embed(name="Ban :", description="*__i!ban__* : Quelqu’un de pas sage? B O N K bannissez le. Mentionnez le après la commande. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!ban {member}**.", colour=0x110b7a)
+    elif com == "code":
+        embed = discord.Embed(name="Code :", description="*__i!code__* : i20 est un bot très intéressant, si vous souhaitez accéder à son code vous pouvez via cette commande.\n\n L'utilisation est **i!code** tout simplement.", colour=0x110b7a)
+    elif com == "date":
+        embed = discord.Embed(name="Date :", description="*__i!date__* : Vous vouliez l’heure ? Eh bien non, pourquoi ne pas passer le temps en faisant faire des rendez-vous entre les gens !\n\n L'utilisation est **i!date {user1} {user2}**.\n PS : Tu as trouvé le secret d'i20, essaie donc la commande **i!bonk** ! ", colour=0x110b7a)
+    elif com == "flip":
+        embed = discord.Embed(name="Flip :", description="*__i!flip__* : Âmes joueuses ? Embarquez dans un pile ou face avec du suspense !\n\n L'utilisation est **i!flip** tout simplement.", colour=0x110b7a)
+    elif com == "interesting":
+        embed = discord.Embed(name="Interesting :", description="*__i!interesting__* : Vous trouvez que la discussion ou le dernier message est très intéressant ? Alors essayez cette commande !\n\n L'utilisation est **i!interesting** tout simplement.", colour=0x110b7a)
+
+    await ctx.send(embed=embed)
         
 bot.run(os.getenv("TOKEN"))
