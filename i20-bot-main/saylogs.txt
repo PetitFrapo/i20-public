@@ -1,0 +1,5 @@
+Dernier clear : 2022-01-15Log de i!say : PetitFrapo a utilisé i20 pour envoyer cool. MESSAGE_ID = 931969930394492988
+Log de i!say : PetitFrapo a utilisé i20 pour envoyer test. MESSAGE_ID = 931970376307724288
+Log de i!say : PetitFrapo a utilisé i20 pour envoyer orggrggdgdf. MESSAGE_ID = 931970836112506890
+Log de i!say : Bokoblin Divin a utilisé i20 pour envoyer i!embed "Je suis trop cool." "Je suis le meilleur des embeds. Dans ce commentaire composé, je vous expliquerai pourquoi." 0xff0000 "Pourquoi je suis le meilleur ?" "Parce que" "Comment suis-je le meilleur ?" "En étant un embed tout simplement". MESSAGE_ID = 932300931314376734
+Log de i!say : PetitFrapo a utilisé i20 pour envoyer <a:pettheted:932286137278545941>. MESSAGE_ID = 933055091953512458
