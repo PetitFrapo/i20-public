@@ -50,7 +50,14 @@ async def on_message(message):
         await message.channel.send(emojiTED)
     if message.content.lower() == "dm moi le mot tomate":
         await message.author.send(str(message.author.mention) + " tomate")
-
+    if "manger" in message.content.lower() or "mangé" in message.content.lower():
+        await message.channel.send(f"Bon appétit {message.author.display_name} ! ")
+    if "feur" in message.content.lower() or "stiti" in message.content.lower() or "bril" in message.content.lower():
+        if not message.author.bot:
+            if not message.content.startswith("i!say"):
+                await message.channel.send(f"Ton humour est vraiment pourri {message.author.mention}...")
+        else:
+            await message.channel.send("Nan mais M. D. R. Ça veut me faire dire que j'ai un humour de merde... Dépitant...")
         
     
     
