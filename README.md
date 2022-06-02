@@ -1,12 +1,12 @@
 # i20-public
-The public version of i20.
+## The public version of i20.
 
 ---
 
+En version : `2.2.1`
 Ici, vous trouverez le code complet du bot i20 :
-main.py contient le code qui ne sont pas des commandes.
-main_bot.py contient le code qui sont des commandes.
-reactionroles.py et reactionrole_speedrun.py sont les Reaction Roles.
+bot.py est le fichier principal.
+cogs contient les sous-fichiers.
 Bonne navigation !
-PS : Ce n'est pas le code complet, il y a d'autres fichiers qui vous sont soit inutile, soit privés.
+PS : Ce n'est pas le code complet, il y a d'autres fichiers qui vous sont soit inutiles, soit privés.
 PPS : Je mets pas le code à jour H24 ici hein rêvez pas
