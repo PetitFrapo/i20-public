@@ -1,8 +1,10 @@
+# Cette partie du code représente ce qu'était avant main.py,
+# donc les réactions aux messages ou les reaction roles.
+
 import discord
 import random
-from discord.ext import commands
 from discord.ext.commands import Cog
-from cogs.CONSTANTS import MyBot, CESTify
+from cogs.cogutils import MyBot
 from dotenv import load_dotenv
 
 default_intents = discord.Intents.default()
@@ -55,18 +57,14 @@ class Listeners(Cog):
                 await message.channel.send("Ouais je vois...")
         if message.content.lower() == "i20 ?":
             await message.channel.send("Oui madame ? Oups pardon je me croyais à l'école des bots... Que disais-tu ?")
-        wut = ["quoi", "koi", "kwa", "kuoi", "keuwa"]
-        for i in wut:
-            if message.content.lower().endswith(i):
-                coiffeur = random.randrange(0, 7)
-                if coiffeur == 3 or coiffeur == 5:
-                    await message.channel.send("feur")
         if message.content.lower().startswith("yilmfg"):
             await message.channel.send("t'as un problème toi")
         if message.content.lower() == "👃":
             await message.channel.send(random.choice(
                 ["<:Ted:905070467143073842>", "<:PPted:921830504033054760>", "<:Ted:905070467143073842>",
                  "<:Ted:905070467143073842>"]))
+        elif message.content.startswith("feur") or message.content.startswith("stiti") or message.content.startswith("bril"):
+            await message.channel.send("Ton humour et bah il pue")
 
     @Cog.listener("on_member_join")
     async def memberjoin(self, member):
@@ -190,5 +188,6 @@ class Listeners(Cog):
                     await member.send(f"Le rôle **{role.name}** t\'a été retiré !")
 
 
+# On ajoute le cog au bot.
 async def setup(bot):
     await bot.add_cog(Listeners(bot))

@@ -1,19 +1,111 @@
+# Cette partie du code rassemble les commandes de modération.
+
 import asyncio
 import datetime
+from typing import Optional
 import random
-
 import discord
 from discord.ext import commands
-from discord.ext.commands import Cog
+from discord.ext.commands import Cog, Context
 from discord import ui, app_commands
 import requests
-from cogs.CONSTANTS import MyBot, CESTify
+from cogs.cogutils import MyBot, CESTify, prettytime
 
 default_intents = discord.Intents.all()
 default_intents.members = True
 default_intents.message_content = True
 
 bot = MyBot(command_prefix="i!", case_insensitive=True, help_command=None, intents=default_intents, application_id=853301761572732928)
+
+
+class RecordModal(ui.Modal):
+    def __init__(self, mode: str, member: discord.Member, ctx: Context, bot: MyBot | commands.Bot, warnchannel: discord.TextChannel, modrole: discord.Role):
+        title = f"{mode.capitalize()} ce membre :"
+        self.warnchannel = warnchannel
+        self.modrole = modrole
+        self.mode = mode
+        self.bot = bot
+        self.ctx = ctx
+        self.member = member
+        super().__init__(title=title)
+
+        if mode == "ban":
+            self.reason = discord.ui.TextInput(label='Raison du ban :', placeholder="Exemple : pa trè genti.", style=discord.TextStyle.short, required=False)
+        elif mode == "kick":
+            self.reason = discord.ui.TextInput(label='Raison du kick :', placeholder="Exemple : pa trè genti.", style=discord.TextStyle.short, required=False)
+        elif mode == "mute":
+            self.duration = discord.ui.TextInput(label='Durée du mute (heures) :', placeholder="Exemple : 3 (mettre 0 équivaut à unmute)", style=discord.TextStyle.short, required=True)
+            self.reason = discord.ui.TextInput(label='Raison du mute :', placeholder="Exemple : pa trè genti.", style=discord.TextStyle.short, required=False)
+            self.add_item(self.duration)
+        else:
+            self.reason = discord.ui.TextInput(label='Raison du warn :', placeholder="Exemple : pa trè genti.", style=discord.TextStyle.short, required=False)
+
+        self.add_item(self.reason)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        if self.mode == "ban":
+            if self.ctx.author.id == self.member.id:
+                await interaction.response.send_message("Tu ne peux pas te ban toi-même !", ephemeral=True)
+            elif self.modrole in self.member.roles:
+                await interaction.response.send_message(
+                    "Tu ne peux pas ban un autre modérateur ! Même si parfois avec Amaury c'est tentant...", ephemeral=True)
+            elif self.member.id == self.bot.user.id:
+                await interaction.response.send_message("Pourquoi t'essaies de me ban petit chenapan !!", ephemeral=True)
+            else:
+                await self.member.ban(reason=str(self.reason))
+                await interaction.response.send_message(f"{self.member.name} a été ban !")
+        elif self.mode == "kick":
+            if self.ctx.author.id == self.member.id:
+                await interaction.response.send_message("Tu ne peux pas te kick toi-même !", ephemeral=True)
+            elif self.modrole in self.member.roles:
+                await interaction.response.send_message(
+                    "Tu ne peux pas kick un autre modérateur ! Même si parfois avec Amaury c'est tentant...", ephemeral=True)
+            elif self.member.id == self.bot.user.id:
+                await interaction.response.send_message("Pourquoi t'essaies de me kick petit chenapan !!", ephemeral=True)
+            else:
+                await self.member.kick(reason=str(self.reason))
+                await interaction.response.send_message(f"{self.member.name} a été kick !")
+        elif self.mode == "mute":
+            if self.ctx.author.id == self.member.id:
+                await interaction.response.send_message("Tu ne peux pas te mute toi-même !", ephemeral=True)
+            elif self.modrole in self.member.roles:
+                await interaction.response.send_message(
+                    "Tu ne peux pas mute un autre modérateur ! Même si parfois avec Amaury c'est tentant...", ephemeral=True)
+            elif self.member.id == self.bot.user.id:
+                await interaction.response.send_message("Pourquoi t'essaies de me mute petit chenapan !!", ephemeral=True)
+            else:
+                dura = datetime.timedelta(hours=int(str(self.duration)))
+                await self.member.timeout(dura, reason=str(self.reason))
+                await interaction.response.send_message(f"{self.member.name} a été mute pendant {self.duration} heures !")
+
+        else:
+            if self.ctx.author.id == self.member.id:
+                await interaction.response.send_message("Tu ne peux pas te warn toi-même !", ephemeral=True)
+            elif self.modrole in self.member.roles:
+                await interaction.response.send_message(
+                    "Tu ne peux pas warn un autre modérateur ! ||Même si parfois avec Amaury c'est tentant...", ephemeral=True)
+            elif self.member.id == self.bot.user.id:
+                await interaction.response.send_message("Pourquoi t'essaies de me warn petit chenapan !!", ephemeral=True)
+            else:
+                embed = discord.Embed(title=f"Tu as été warn {self.member.name}!",
+                                      description=f"Désolé {self.member.mention} ! La raison de ton warn est : _**{self.reason}**_.",
+                                      colour=discord.Colour.red(),
+                                      timestamp=self.ctx.message.created_at)
+                embed.set_author(name=self.ctx.guild.name, icon_url=self.ctx.guild.icon.url)
+                embed.set_footer(text=f"Ce warn t'a été mis par {self.ctx.author.name}.")
+                try:
+                    await self.member.send(embed=embed)
+                except:
+                    await self.ctx.send(embed=embed)
+                secondembed = discord.Embed(title=f"{self.member.name} a été warn !",
+                                            description=f"La raison est : **{self.reason}**.",
+                                            colour=discord.Colour.red(),
+                                            timestamp=self.ctx.message.created_at)
+                secondembed.set_footer(text=f"Ce warn a été donné par {self.ctx.author.name}.")
+                await self.warnchannel.send(embed=secondembed)
+                await interaction.response.send_message(f"{self.member.name} a été warn avec raison : **{self.reason}** !")
+
+
 
 
 class Moderation(commands.Cog):
@@ -139,14 +231,14 @@ class Moderation(commands.Cog):
     @commands.command(name="clear")
     @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx: commands.Context, number_of_messages: int):
-        messages = await ctx.channel.history(limit=number_of_messages + 1).flatten()
-        for each_message in messages:
+        messages = ctx.channel.history(limit=number_of_messages + 1)
+        async for each_message in messages:
             await each_message.delete()
         await ctx.channel.send("Les messages ont été supprimés !", delete_after=3)
 
     @commands.command(name="pin")
     @commands.has_role("Modérateurs")
-    async def pin(self, ctx):
+    async def pin(self, ctx: Context):
         try:
             refmessageid = ctx.message.reference.message_id
             pinmessage = await ctx.fetch_message(refmessageid)
@@ -154,19 +246,78 @@ class Moderation(commands.Cog):
         except:
             await ctx.send("Tu ne réponds à aucun message !")
 
-    @commands.hybrid_command(name="updaterole")
-    @app_commands.checks.has_role("Modérateurs")
+    @commands.command(name="mute", aliases=["timeout"])
     @commands.has_role("Modérateurs")
-    async def updaterole(ctx: commands.Context, roletodel: discord.Role, roletoadd: discord.Role) -> None:
-        times = 0
-        guild: discord.Guild = ctx.guild
-        for member in guild.members:
-            if roletodel in member.roles:
-                await member.remove_roles(roletodel)
-                await member.add_roles(roletoadd)
-                times += 1
-        await ctx.send(f"**{times}** modifications ont été effectuées !")
+    async def mute(self, ctx: Context, member: discord.Member, hours: int, reason: Optional[str] = "pas de raison"):
+        duration = datetime.timedelta(hours=hours)
+        await member.timeout(duration, reason=reason)
+        if hours == 0:
+            await ctx.send(f"Le membre {member.name} a bien été unmute pour la raison : **{reason}**.")
+            return
+        if duration.days == 0:
+            await ctx.send(f"Le membre {member.name} a été timeout pendant {hours} {'heures' if hours > 1 else 'heure'} pour la raison **{reason}**.")
+        else:
+            changingtime = hours
+            days = 0
+            while changingtime >= 24:
+                days += 1
+                changingtime -= 24
+            await ctx.send(f"Le membre {member.name} a été timeout pendant {days} {'jour' if days == 1 else 'jours'} et {changingtime} {'heure' if changingtime == 1 else 'heures'}.")
+
+    @commands.command(name="unmute")
+    @commands.has_role("Modérateurs")
+    async def untimeout(self, ctx: Context, member: discord.Member, reason: Optional[str] = "pas de raison"):
+        duration = datetime.timedelta(hours=0)
+        await member.timeout(duration, reason=reason)
+        await ctx.send(f"Le membre {member.name} a bien été unmute pour la raison : **{reason}**.")
+
+    @commands.command(name="record")
+    async def criminal_record(self, ctx: Context, member: discord.Member):
+        joined = prettytime(CESTify(member.joined_at))
+        warniterator = []
+        warnings: discord.TextChannel = self.bot.get_channel(924313724188250163)
+        async for message in warnings.history(limit=None):
+            if member.name in message.embeds[0].title or member.display_name in message.embeds[0].title:
+                dict = message.embeds[0].to_dict()
+                author = dict['footer']['text'].split("par ")[1][:-1]
+                reason = dict['description'].split("raison est : ")[1][:-1]
+                warniterator.append([message.created_at.strftime("%d/%m/%Y à %H:%M"), reason, author])
+
+        warnchannel: discord.TextChannel = self.bot.get_channel(924313724188250163)
+        modrole = discord.utils.get(ctx.guild.roles, id=845027528196227133)
 
 
+        class BabaBooey(ui.Button):
+            def __init__(self, label: str, style: discord.ButtonStyle, mode: str, emoji: discord.PartialEmoji):
+                self.mode = mode
+                super().__init__(style=style, label=label, emoji=emoji)
+
+            async def callback(self, interaction: discord.Interaction):
+                nonlocal warnchannel, modrole
+                await interaction.response.send_modal(RecordModal(mode=self.mode, member=member, ctx=ctx, bot=bot, warnchannel=warnchannel, modrole=modrole))
+
+        # kick: ⏏️,  ban: 🔨, warn: 🔫, mute: 🤫
+        kickbtn = BabaBooey(label="Kick le membre", emoji=discord.PartialEmoji(name="⏏"), style=discord.ButtonStyle.red, mode="kick")
+        banbtn = BabaBooey(label="Ban le membre", emoji=discord.PartialEmoji(name="🔨"), style=discord.ButtonStyle.red, mode="ban")
+        warnbtn = BabaBooey(label="Warn le membre", emoji=discord.PartialEmoji(name="🔫"), style=discord.ButtonStyle.red, mode="warn")
+        mutebtn = BabaBooey(label="Mute le membre", emoji=discord.PartialEmoji(name="🤫"), style=discord.ButtonStyle.red, mode="mute")
+
+        view = ui.View().add_item(kickbtn).add_item(banbtn).add_item(warnbtn).add_item(mutebtn)
+
+        embed = discord.Embed(title=f"Casier de {member.name} :", description=f"A rejoint le {joined}.\nVoici les warns de {member.name} :", colour=discord.Colour.red())
+        warnslist = []
+        if len(warniterator) == 0:
+            embed.add_field(name="Ce membre n'a pas de warn !", value="et oui il est sage")
+        else:
+            for i in warniterator:
+                warnslist.append([f"Warn n°{warniterator.index(i)+1} le {i[0]}", f"par {i[2]}, raison :\n{i[1]}"])
+
+        for i in warnslist:
+            embed.add_field(name=i[0], value=i[1])
+
+        await ctx.send(embed=embed, view=view)
+
+
+# On ajoute le cog au bot.
 async def setup(bot):
     await bot.add_cog(Moderation(bot))

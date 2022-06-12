@@ -1,10 +1,12 @@
-import datetime
+# Cette partie, plutôt courte, du code représente la commande meme,
+# je compte rajouter plus de commandes liées au memes plus tard.
 
+import datetime
 import discord
 from discord.ext import commands
 from discord import ui
 import requests
-from cogs.CONSTANTS import MyBot, CESTify
+from cogs.cogutils import MyBot, CESTify
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -12,11 +14,12 @@ default_intents.message_content = True
 
 bot = MyBot(command_prefix="i!", case_insensitive=True, help_command=None, intents=default_intents, application_id=853301761572732928)
 
+
 class Memes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="meme")
+    @commands.hybrid_command(name="meme")
     async def meme(self, ctx: commands.Context, subreddit=""):
         nsfwcount = -1
         while True:
@@ -50,5 +53,7 @@ class Memes(commands.Cog):
             await ctx.send(embed=embed, view=view)
             break
 
+
+# On ajoute le cog au bot.
 async def setup(bot):
     await bot.add_cog(Memes(bot))

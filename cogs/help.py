@@ -1,6 +1,10 @@
+# Cette partie du cog représente la commande help, et oui c'est vachement long.
+
+from typing import Optional
 import discord
 from discord.ext import commands
-from cogs.CONSTANTS import MyBotTreeCopyToYvain
+from discord import app_commands
+from cogs.cogutils import MyBotTreeCopyToYvain
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -13,7 +17,8 @@ class Select(discord.ui.Select):
     def __init__(self):
         options = [
             discord.SelectOption(label="Commandes classiques", emoji="🔧", description="Les commandes classiques  !"),
-            discord.SelectOption(label="Commandes slash", emoji="🔨", description="Les commandes slash (nouveauté) !")
+            discord.SelectOption(label="Commandes slash", emoji="🔨", description="Les commandes slash !"),
+            discord.SelectOption(label="Commandes de données", emoji="⛏️", description="Les commandes de données (nouveauté) !")
         ]
         super().__init__(placeholder="Veuillez choisir une catégorie de commandes", max_values=1, min_values=1,
                          options=options)
@@ -24,14 +29,14 @@ class Select(discord.ui.Select):
                                       color=0x110b7a,
                                       description="---\ni20 est un bot possédant plein de commandes, les voici :")
             classhelp.add_field(name="Fun :",
-                                value="*__i!interesting__* : Intéressant...\n *__i!flip__* : Pile ou face ?\n *__i!meme__* : Génère un meme aléatoire.\n *__i!date__* : romance.\n *__i!ping__* : NOTIFICATION INTENSIFIES\n *__i!say__* : Faites dire quelque chose à i20 ! Ne dites pas de gros mots ou gare à vous !\n *__i!quote__* : Les citations cultes d'Yvain et PetitFrapo !\n *__i!embed__* : Crée un embed (càd un texte stylé et encadré et tout!).\n *__i!throw__* : Lance quelque chose sur quelqu'un.\n *__i!ship__* : uwu~\n *__i!randommsg__* : Génère un message aléatoire du salon.",
+                                value="*__i!flip__* : Pile ou face ?\n *__i!date__* : romance.\n *__i!say__* : Faites dire quelque chose à i20 ! Ne dites pas de gros mots ou gare à vous !\n *__i!quote__* : Les citations cultes d'Yvain et PetitFrapo !\n *__i!throw__* : Lance quelque chose sur quelqu'un.\n *__i!ship__* : uwu~\n *__i!random__* : Génère un ou plusieurs message aléatoire d'un salon.\n *__i!meme__* : Prends un meme aléatoire du subreddit donné (par défaut dans r/memes).\n *__i!edit__* : Modifie un message d'i20.\n *__i!reply__* : Comme i!say, mais i20 répond à un message.",
                                 inline=False)
 
             classhelp.add_field(name="Modération :",
-                                value="*__i!ban__* : B O N K le marteau\n *__i!unban__* : uaetram el K N O B\n *__i!kick__* : Pour kick les gens pas trétré genti\n *__i!clear__* : Supprime des messages du salon.\n *__i!pin__* : Épingle le message qui est répondu.\n *__i!warn__* : Permet de warn un utilisateur.\n *__i!removewarn__* : Retire un warn à quelqu'un.",
+                                value="*__i!ban__* : B O N K le marteau\n *__i!unban__* : uaetram el K N O B\n *__i!kick__* : Pour kick les gens pas trétré genti\n *__i!clear__* : Supprime des messages du salon.\n *__i!pin__* : Épingle le message qui est répondu.\n *__i!warn__* : Permet de warn un utilisateur.\n *__i!removewarn__* : Retire un warn à quelqu'un.\n *__i!warns__* : Vois tes avertissements.\n *__i!mute__* : Mute un utilisateur.\n *__i!unmute__* : Unmute un utilisateur.\n *__i!record__* : Montre le \"casier judiciaire\" d'un utilisateur.",
                                 inline=False)
             classhelp.add_field(name="Utile :",
-                                value="*__i!invite__* : Crée une invitation du serveur.\n *__i!avatar__* : Obtient l'avatar du membre.\n *__i!help__* : Affiche ce message.\n *__i!poll__* : Crée un sondage.\n *__i!ost__* : Génère une OST aléatoire.\n *__i!id__* : Prends l'ID de quelqu'un.\n *__i!warns__* : Vois tes avertissements.",
+                                value="*__i!invite__* : Crée une invitation du serveur.\n *__i!avatar__* : Obtient l'avatar du membre.\n *__i!help__* : Affiche ce message.\n *__i!poll__* : Crée un sondage.\n *__i!ost__* : Génère une OST aléatoire.\n *__i!id__* : Prends l'ID de quelqu'un.\n *__i!embed__* : Crée un embed (càd un texte stylé et encadré et tout!).\n *__i!profile__* : Montre le profil détaillé d'un utilisateur.\n *__i!submit__* : Propose tes idées pour i20, ça m'aide beaucoup !\n *__i!source__* : Regarde le code source d'une commande.\n *__i!raw__* : Obtiens l'image d'un emoji.",
                                 inline=False)
             classhelp.add_field(
                 name="__*Pour avoir plus de précision sur une commande, veuillez faire 'i!help nomDeLaCommande'.*__",
@@ -43,15 +48,38 @@ class Select(discord.ui.Select):
                                       description="---\ni20 possède aussi une toute nouvelle fonctionnalité : les commandes slash. Les voici :",
                                       color=0x110b7a)
             slashhelp.add_field(name="Fun :",
-                                value="*__/8ball__* : Demandez une question à i20, il vous répondra !\n *__/flip__* : Pile ou face ?",
+                                value="*__/8ball__* : Demandez une question à i20, il vous répondra !\n *__/flip__* : Pile ou face ?\n *__/meme__* : Prends un meme aléatoire du subreddit donné (par défaut dans r/memes).",
                                 inline=False)
             slashhelp.add_field(name="Modération :",
                                 value="*__/ban__* : B O N K le slashteau",
                                 inline=False)
             slashhelp.add_field(name="Utile :",
-                                value="*__/sum__* : Additionne deux nombres.\n *__/poll__* : Crée un sondage.\n *__/embed__* : Crée un embed.\n *__/hexa__* : Traduis un nombre en héxadécimal.\n *__/info__* : Informations sur i20.\n *__/shorten__* : Raccourcis une URL.")
+                                value="*__/math__* : Utilise une calculette divine !\n *__/poll__* : Crée un sondage.\n *__/embed__* : Crée un embed.\n *__/hexa__* : Traduis un nombre en héxadécimal.\n *__/shorten__* : Raccourcis une URL.\n *__/help__* : Affiche ce message.\n *__/info__* : Informations supplémentaires sur i20.\n *__/submit__* : Propose une idée pour i20, ça m'aide beaucoup !")
+            slashhelp.add_field(
+                name="__*Pour avoir plus de précision sur une commande, veuillez faire 'i!help nomDeLaCommande'.*__",
+                value="Merci à Amaury pour l'aide qu'il a donnée pour la commande <3\n Vous pouvez aussi faire **/help syntax** pour en apprendre plus sur la syntaxe utilisée dans l'explication des utilisations des commandes.\n---",
+                inline=False)
             await interaction.response.edit_message(embed=slashhelp)
-
+        elif self.values[0] == "Commandes de données":
+            dbhelp = discord.Embed(title="Les commandes de données d'i20 :",
+                                   description="---\ni20 possède désormais une troisième et dernière catégorie de commandes : les commandes de données ! Ces commandes sont une révolution pour i20, car elle vous permettent d'utiliser pleinement de l'enregistrement dans une table.\n**Veuillez noter que ces commandes sont __à la fois__ classiques et slash**.",
+                                   colour=0x110b7a)
+            dbhelp.add_field(name="Enregistrer des valeurs :",
+                             value="*__register__* : Manier des données dans un tableau. Possède des sous-commandes que voici :\n *__register add__* : Ajoute une donnée dans un tableau.\n *__register remove__* : Retire la valeur associée à une clé.\n *__register get__* : Obtiens la valeur associée à une clé.\n *__register show__* : Montre l'entièreté de la table.",
+                             inline=False)
+            dbhelp.add_field(name="Enregistrer des embeds :",
+                             value="*__regembed__* : Créer et envoyer un embed dans un tableau. Possède des sous-commandes que voici :\n *__regembed add__* : Ajoute un embed dans un tableau.\n *__regembed remove__* : Retire l'embed associé à l'étiquette donnée.\n *__regembed send__* : Envoie l'embed associée à l'étiquette donnée.\n *__regembed show__* : Montre l'entièreté de la table.",
+                             inline=False)
+            dbhelp.add_field(name="Enregistrer des boutons :",
+                             value="*__button__* : Enregistre un bouton dans un tableau. Possède des sous-commandes que voici :\n *__button add__* : Ajoute un bouton dans un tableau.\n *__button remove__* : Retire le bouton associé à l'étiquette donnée.\n *__button send__* : Envoie le bouton associée à l'étiquette donnée.\n *__button show__* : Montre l'entièreté de la table.",
+                             inline=False)
+            dbhelp.add_field(name="Enregistrer ton annviersaire :",
+                             value="*__birthday__* : Une fonctionnalité _très_ attendue. Et je pèse mes mots. Possède des sous-commandes que voici :\n *__button add__* : Ajoute un bouton dans un tableau.\n *__button remove__* : Retire le bouton associé à l'étiquette donnée.\n *__button send__* : Envoie le bouton associée à l'étiquette donnée.\n *__button show__* : Montre l'entièreté de la table.",
+                             inline=False)
+            dbhelp.add_field(name="Et, pour mélanger tout ça :",
+                             value="*__send__* : Permets d'envoyer un message avec, facultativement, un embed et jusqu'à trois boutons, enregistrés préalablement.",
+                             inline=False)
+            await interaction.response.edit_message(embed=dbhelp)
 
 class SelectView(discord.ui.View):
     def __init__(self, *, timeout=360):
@@ -63,225 +91,176 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="orihelp", aliases=["ori?"])
-    async def help(self, ctx, command=""):
-        com = command.lower()
-        if com == "":
-            embed = discord.Embed(title="Les commandes d'i20 :",
-                                  color=0x110b7a,
-                                  description="---\ni20 est un bot possédant plein de commandes, les voici :")
-            embed.add_field(name="Fun :",
-                            value="*__i!interesting__* : Intéressant...\n *__i!flip__* : Pile ou face ?\n *__i!meme__* : Génère un meme aléatoire.\n *__i!date__* : romance.\n *__i!ping__* : NOTIFICATION INTENSIFIES\n *__i!say__* : Faites dire quelque chose à i20 ! Ne dites pas de gros mots ou gare à vous !\n *__i!quote__* : Les citations cultes d'Yvain et PetitFrapo !\n *__i!embed__* : Crée un embed (càd un texte stylé et encadré et tout!).",
-                            inline=False)
-
-            embed.add_field(name="Modération :",
-                            value="*__i!ban__* : B O N K le marteau\n *__i!unban__* : uaetram el K N O B\n *__i!kick__* : Pour kick les gens pas trétré genti\n *__i!clear__* : Supprime des messages du salon.",
-                            inline=False)
-            embed.add_field(name="Utile :",
-                            value="*__i!invite__* : Crée une invitation du serveur.\n *__i!avatar__* : Obtient l'avatar du membre.\n *__i!help__* : Affiche ce message.\n *__i!poll__* : Crée un sondage.\n *__i!warns__* : Vois tes avertissements.\n *__i!info__* : Informations sur i20",
-                            inline=False)
-            embed.add_field(name="__*Pour avoir plus de précision sur une commande, veuillez faire 'i!help nomDeLaCommande'.*__",
-                            value="Merci à Amaury pour l'aide qu'il a donnée pour la commande <3\n Vous pouvez aussi faire **i!help syntax** pour en apprendre plus sur la syntaxe utilisée dans l'explication des utilisations des commandes.\n---",
-                            inline=False)
-        elif com == "avatar":
-            embed = discord.Embed(title="Avatar :",
-                                  description="*__i!avatar__* : Pour prendre l’avatar de quelqu’un ou le sien, mentionnez celui dont vous souhaitez la pp. Prend en charge les jpgs.\n\n L'utilisation est **i!avatar {user}**.",
-                                  colour=0x110b7a)
-        elif com == "clear":
-            embed = discord.Embed(title="Clear :",
-                                  description="*__i!clear__* : Supprimez un certain nombre de messages dans le salon où la commande a été exécutée, insérez une valeur après pour renseigner le nombre de messages a supprimer. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!clear {number}**.",
-                                  colour=0x110b7a)
-        elif com == "ban":
-            embed = discord.Embed(title="Ban :",
-                                  description="*__i!ban__* : Quelqu’un de pas sage? B O N K bannissez le. Mentionnez le après la commande. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!ban {member}**.",
-                                  colour=0x110b7a)
-        elif com == "code":
-            embed = discord.Embed(title="Code :",
-                                  description="*__i!code__* : i20 est un bot très intéressant, si vous souhaitez accéder à son code vous pouvez via cette commande.\n\n L'utilisation est **i!code** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "date":
-            embed = discord.Embed(title="Date :",
-                                  description="*__i!date__* : Vous vouliez l’heure ? Eh bien non, pourquoi ne pas passer le temps en faisant faire des rendez-vous entre les gens !\n\n L'utilisation est **i!date {user1} {user2}**.\n PS : Tu as trouvé le secret d'i20, essaie donc la commande **i!bonk** ! ",
-                                  colour=0x110b7a)
-        elif com == "flip":
-            embed = discord.Embed(title="Flip :",
-                                  description="*__i!flip__* : Âmes joueuses ? Embarquez dans un pile ou face avec du suspense !\n\n L'utilisation est **i!flip** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "embed":
-            embed = discord.Embed(title="Embed :",
-                                  description="*__i!embed__* : Vous avez envie de faire des textes ultra stylax ? Cette commande est faite pour vous!\n\n L'utilisation est **i!embed [title] [description] [couleur] {champ1} {desc_champ1} {champ2} {desc_champ2}**.\n PS : Les modérateurs peuvent rajouter 'hidename' **__à la fin__** de leur message afin de cacher leur identité.",
-                                  colour=0x110b7a)
-        elif com == "interesting":
-            embed = discord.Embed(title="Interesting :",
-                                  description="*__i!interesting__* : Vous trouvez que la discussion ou le dernier message est très intéressant ? Alors essayez cette commande !\n\n L'utilisation est **i!interesting** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "unban":
-            embed = discord.Embed(title="Unban :",
-                                  description="*__i!unban__* : Finalement il a été sage U N B O N K ! Débanissez le. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!unban {user}**.",
-                                  colour=0x110b7a)
-        elif com == "ping":
-            embed = discord.Embed(title="Ping :",
-                                  description="*__i!ping__* : Vous pouvez ping quelqu’un en toute discrétion avec cette commande. Abusez pas S.V.P.\n\n L'utilisation est **i!ping {user}**.",
-                                  colour=0x110b7a)
-        elif com == "meme":
-            embed = discord.Embed(title="Meme :",
-                                  description="*__i!meme__* : Hahaha un meme au hasard ! Hésitez pas à proposer vos memes.\n\n L'utilisation est **i!meme** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "quote":
-            embed = discord.Embed(title="Quote :",
-                                  description="*__i!quote__* : Yvain et PetitFrapo les grands cultes vous proposent de nombreuses citations aussi inspirantes les unes que les autres. Découvrez les avec cette commande.\n\n L'utilisation est **i!quote** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "kick":
-            embed = discord.Embed(title="Kick :",
-                                  description="*__i!kick__* : GET THE FRICK OUT OF HERE, autrement dit faites le partir aussi vite qu'il est venu ! Cette commande est utilisable uniquement par les modérateurs.\n\n L'utilisation est **i!kick [member]**.",
-                                  colour=0x110b7a)
-        elif com == "invite":
-            embed = discord.Embed(title="Invite :",
-                                  description="*__i!invite__* : Générez rapidement un lien d’invitation pour faire augmenter la populace !\n\n L'utilisation est **i!invite** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "poll":
-            embed = discord.Embed(title="Poll :",
-                                  description="*__i!poll__* : Êtes-vous le seul à vous poser cette question bête ? Faites-le savoir en entrant la commande. Le sondage sera envoyé dans le salon adéquat.\n\n L'utilisation est **i!poll [question] [réponse1] [réponse2] {réponse3} {réponse4}**.\n PS : Chaque question et réponse doit être entre guillemets.",
-                                  colour=0x110b7a)
-        elif com == "help":
-            embed = discord.Embed(title="Help :",
-                                  description="*__i!help__* : C'est pas bien dur, vous venez de le faire ! Cette commande affiche ce message !\n\n L'utilisation est **i!help {commande}**.\n PS : Vous pouvez aussi utiliser i!?.",
-                                  colour=0x110b7a)
-        elif com == "warns":
-            embed = discord.Embed(title="Warnings :",
-                                  description="*__i!warns__* : Tu veux voir combien de fautes tu as commis sur le serveur ? Utilise la commande !\n\n L'utilisation est **i!warns {member}**.",
-                                  colour=0x110b7a)
-        elif com == "syntax":
-            embed = discord.Embed(title="Syntaxe :",
-                                  description="La syntaxe n'est pas bien dure à comprendre !\n **[argument]** : L'argument est obligatoire.\n **{argument}** : L'argument est optionnel.\n Et rien de plus ! Amusez-vous bien avec le bot !",
-                                  colour=0x110b7a)
-        elif com == "say":
-            embed = discord.Embed(title="Say :",
-                                  description="Faites dires des choses loufoques à i20. Il y a néanmoins un filtre de mot.\n PS : On aime pas la choucroute ni le haggis.\n\n L'utilisation est **i!say [textÀDire]**.",
-                                  colour=0x110b7a)
-        else:
-            await ctx.send(f"La commande {com} n'existe pas !")
-            return
-
-        await ctx.send(embed=embed)
-
-
-    @commands.command(name="help", aliases=["?"])
-    async def helpui(self, ctx: commands.Context, command: str=""):
+    @commands.hybrid_command(name="help", aliases=["?"], description="Menu d'aide d'i20.")
+    @app_commands.describe(command="La commande dont tu veux obtenir les détails.")
+    async def helpui(self, ctx: commands.Context, command: Optional[str] = ""):
         com = command.lower()
         if com == "":
             embed = discord.Embed(title="Menu d'aide d'i20 :",
                                   description="Veuillez choisir une catégorie.",
                                   colour=0x110b7a)
             await ctx.send(embed=embed, view=SelectView())
-        elif com == "avatar":
-            embed = discord.Embed(title="Avatar :",
-                                  description="*__i!avatar__* : Pour prendre l’avatar de quelqu’un ou le sien, mentionnez celui dont vous souhaitez la pp. Prend en charge les jpgs.\n\n L'utilisation est **i!avatar {user}**.",
-                                  colour=0x110b7a)
-        elif com == "randommsg":
-            embed = discord.Embed(title="Random Message :",
-                                  description="*__i!randommsg__* : Sentiments de nostalgie ? Pas de problème, cette commande cherche un message aléatoire dans le salon ! \n\n L'utilisation est **i!randommsg** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "warn":
-            embed = discord.Embed(title="Warn :",
-                                  description="*__i!warn__* : Quelqu'un a fait quelque chose de pas gentil et tu veux qu'il s'en souvienne ? Mets-lui un avertissement, tu verras, c'est rigolo ! Cette commande est utilisable seulement par les modérateurs. \n\n L'utilisation est **i!warn [member] {reason}**.",
-                                  colour=0x110b7a)
-        elif com == "id":
-            embed = discord.Embed(title="ID :",
-                                  description="*__i!id__* : Tu veux utiliser une commande comme **i!date** mais tu n'as pas envie de mentionner la personne car c'est un modérateur ? Et bien utilise cette commande, et remplace la mention de la personne par son identifiant. Tu verras ça marche ! \n\n L'utilisation est **i!id [memberName]**.",
-                                  colour=0x110b7a)
-        elif com == "ost":
-            embed = discord.Embed(title="OST :",
-                                  description="*__i!ost__* : Envie d'écouter une OST de jeux vidéos ? Parfait ! La commande vous en passe une super cool !\n\n L'utilisation est **i!ost** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "clear":
-            embed = discord.Embed(title="Clear :",
-                                  description="*__i!clear__* : Supprimez un certain nombre de messages dans le salon où la commande a été exécutée, insérez une valeur après pour renseigner le nombre de messages a supprimer. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!clear {number}**.",
-                                  colour=0x110b7a)
-        elif com == "throw":
-            embed = discord.Embed(title="Throw :",
-                                  description="*__i!throw__* : Vous avez toujours rêvé de lançer des choses sur des gens ? Et bien cette commande est faite pour vous !\n\n L'utilisation est **i!throw [victime]**.",
-                                  colour=0x110b7a)
-        elif com == "ban":
-            embed = discord.Embed(title="Ban :",
-                                  description="*__i!ban__* : Quelqu’un de pas sage? B O N K bannissez le. Mentionnez le après la commande. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!ban {member}**.",
-                                  colour=0x110b7a)
-        elif com == "code":
-            embed = discord.Embed(title="Code :",
-                                  description="*__i!code__* : i20 est un bot très intéressant, si vous souhaitez accéder à son code vous pouvez via cette commande.\n\n L'utilisation est **i!code** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "ship":
-            embed = discord.Embed(title="Ship :",
-                                  description="*__i!ship__* : On se sent un peu trop Cupidon ces temps-ci ? Pas de problème, i20 prend le relais et trouve les tourtereaux parfaits à votre place !\n\n L'utilisation est **i!ship {member1} {member2}** tout simplement.",
+
+        # CLASSIC COMMANDS
+        # FUN COMMANDS
+        elif com == "flip":
+            embed = discord.Embed(title="La commande hybride flip :",
+                                  description="Âmes joueuses ? Embarquez dans un pile ou face avec du suspense !\n L'utilisation est **i!flip** tout simplement.",
                                   colour=0x110b7a)
         elif com == "date":
-            embed = discord.Embed(title="Date :",
-                                  description="*__i!date__* : Vous vouliez l’heure ? Eh bien non, pourquoi ne pas passer le temps en faisant faire des rendez-vous entre les gens !\n\n L'utilisation est **i!date {user1} {user2}**.\n PS : Tu as trouvé le secret d'i20, essaie donc la commande **i!bonk** ! ",
-                                  colour=0x110b7a)
-        elif com == "flip":
-            embed = discord.Embed(title="Flip :",
-                                  description="*__i!flip__* : Âmes joueuses ? Embarquez dans un pile ou face avec du suspense !\n\n L'utilisation est **i!flip** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "embed":
-            embed = discord.Embed(title="Embed :",
-                                  description="*__i!embed__* : Vous avez envie de faire des textes ultra stylax ? Cette commande est faite pour vous!\n\n L'utilisation est **i!embed [title] [description] [couleur] {champ1} {desc_champ1} {champ2} {desc_champ2}**.\n PS : Les modérateurs peuvent rajouter 'hidename' **__à la fin__** de leur message afin de cacher leur identité.",
-                                  colour=0x110b7a)
-        elif com == "interesting":
-            embed = discord.Embed(title="Interesting :",
-                                  description="*__i!interesting__* : Vous trouvez que la discussion ou le dernier message est très intéressant ? Alors essayez cette commande !\n\n L'utilisation est **i!interesting** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "unban":
-            embed = discord.Embed(title="Unban :",
-                                  description="*__i!unban__* : Finalement il a été sage U N B O N K ! Débanissez le. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!unban {user}**.",
-                                  colour=0x110b7a)
-        elif com == "ping":
-            embed = discord.Embed(title="Ping :",
-                                  description="*__i!ping__* : Vous pouvez ping quelqu’un en toute discrétion avec cette commande. Abusez pas S.V.P.\n\n L'utilisation est **i!ping {user}**.",
-                                  colour=0x110b7a)
-        elif com == "meme":
-            embed = discord.Embed(title="Meme :",
-                                  description="*__i!meme__* : Hahaha un meme au hasard ! Hésitez pas à proposer vos memes.\n\n L'utilisation est **i!meme** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "quote":
-            embed = discord.Embed(title="Quote :",
-                                  description="*__i!quote__* : Yvain et PetitFrapo les grands cultes vous proposent de nombreuses citations aussi inspirantes les unes que les autres. Découvrez les avec cette commande.\n\n L'utilisation est **i!quote** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "kick":
-            embed = discord.Embed(title="Kick :",
-                                  description="*__i!kick__* : GET THE FRICK OUT OF HERE, autrement dit faites le partir aussi vite qu'il est venu ! Cette commande est utilisable uniquement par les modérateurs.\n\n L'utilisation est **i!kick [member]**.",
-                                  colour=0x110b7a)
-        elif com == "pin":
-            embed = discord.Embed(title="Pin :",
-                                  description="*__i!pin__* : Vous avez envie d'épingler un message mais vous êtes sur mobile et, pfiou trop la flemme ? Cette commande est donc trop cool ! Cette commande est utilisable uniquement par les modérateurs.\n\n L'utilisation est **i!pin** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "warns":
-            embed = discord.Embed(title="Warnings :",
-                                  description="*__i!warns__* : Tu veux voir combien de fautes tu as commis sur le serveur ? Utilise la commande !\n\n L'utilisation est **i!warns {member}**.",
-                                  colour=0x110b7a)
-        elif com == "invite":
-            embed = discord.Embed(title="Invite :",
-                                  description="*__i!invite__* : Générez rapidement un lien d’invitation pour faire augmenter la populace !\n\n L'utilisation est **i!invite** tout simplement.",
-                                  colour=0x110b7a)
-        elif com == "poll":
-            embed = discord.Embed(title="Poll :",
-                                  description="*__i!poll__* : Êtes-vous le seul à vous poser cette question bête ? Faites-le savoir en entrant la commande. Le sondage sera envoyé dans le salon adéquat.\n\n L'utilisation est **i!poll [question] [réponse1] [réponse2] {réponse3} {réponse4}**.\n PS : Chaque question et réponse doit être entre guillemets.",
-                                  colour=0x110b7a)
-        elif com == "help":
-            embed = discord.Embed(title="Help :",
-                                  description="*__i!help__* : C'est pas bien dur, vous venez de le faire ! Cette commande affiche ce message !\n\n L'utilisation est **i!help {commande}**.\n PS : Vous pouvez aussi utiliser i!?.",
-                                  colour=0x110b7a)
-        elif com == "syntax":
-            embed = discord.Embed(title="Syntaxe :",
-                                  description="La syntaxe n'est pas bien dure à comprendre !\n **[argument]** : L'argument est obligatoire.\n **{argument}** : L'argument est optionnel.\n Et rien de plus ! Amusez-vous bien avec le bot !",
+            embed = discord.Embed(title="La commande date :",
+                                  description="Vous vouliez l’heure ? Eh bien non, pourquoi ne pas passer le temps en faisant faire des rendez-vous entre les gens !\n L'utilisation est **i!date {user1} {user2}**.\n **{user1}** correspond au premier utilisateur.\n **{user2}** correspond au second utilisateur.\n\n PS : Tu as trouvé le secret d'i20, essaie donc la commande **i!bonk** ! ",
                                   colour=0x110b7a)
         elif com == "say":
-            embed = discord.Embed(title="Say :",
-                                  description="Faites dires des choses loufoques à i20. Il y a néanmoins un filtre de mot.\n PS : On aime pas la choucroute ni le haggis.\n\n L'utilisation est **i!say [textÀDire]**.",
+            embed = discord.Embed(title="La commande say :",
+                                  description="Faites dires des choses loufoques à i20. Il y a néanmoins un filtre de mot.\n PS : On aime pas la choucroute ni le haggis.\n L'utilisation est **i!say [texteÀDire]**\n **[texteÀDire]** correspond au... texte à... dire ?.",
+                                  colour=0x110b7a)
+        elif com == "quote":
+            embed = discord.Embed(title="La commande quote :",
+                                  description="Yvain et les modos, les grands cultes, vous proposent de nombreuses citations aussi inspirantes les unes que les autres. Découvrez les avec cette commande.\n L'utilisation est **i!quote** tout simplement.",
+                                  colour=0x110b7a)
+        elif com == "throw":
+            embed = discord.Embed(title="La commande throw :",
+                                  description="Vous avez toujours rêvé de lançer des choses sur des gens ? Et bien ~~vous êtes bizarre~~ cette commande est faite pour vous !\n L'utilisation est **i!throw [victime]**.\n **[victime]** correspond à la personne sur laquelle vous voulez lancer quelque chose.",
+                                  colour=0x110b7a)
+        elif com == "ship":
+            embed = discord.Embed(title="La commande ship :",
+                                  description="On se sent un peu trop Cupidon ces temps-ci ? Pas de problème, i20 prend le relais et trouve les tourtereaux parfaits à votre place !\n L'utilisation est **i!ship {member1} {member2}**.\n **{member1}** correspond au premier membre a ship, si vous ne voulez pas d'aléatoire.\n **{member1}** correspond au secind membre à ship, si vous ne voulez pas d'aléatoire.",
+                                  colour=0x110b7a)
+        elif com == "random":
+            embed = discord.Embed(title="La commande random :",
+                                  description="Sentiments de nostalgie ? Pas de problème, cette commande cherche un ou plusieurs message aléatoire dans ce ou un autre salon !\n L'utilisation est **i!random {nombre} {salon}**.\n **{nombre}** correspond au nombre de messages à obtenir. Si non spécifié, il vaut 1.\n **{salon}** correspond au salon dans lequel les messages doivent être obtenus. Si non spécifié, c'est le salon de la commande.",
+                                  colour=0x110b7a)
+        elif com == "meme":
+            embed = discord.Embed(title="La commande hybride meme :",
+                                  description="Obtiens un meme aléatoire de Reddit. C'est toujours sympa de temps en temps !\n L'utilisation est **i!meme {subreddit}**.\n **{subreddit}** correspond au subreddit (sans le \"r/\").",
+                                  colour=0x110b7a)
+        elif com == "edit":
+            embed = discord.Embed(title="La commande edit :",
+                                  description="Modifie un message que i20 a écrit, par exemple après une faute avec i!say.\n L'utilisation est **i!edit [newText]** en répondant au message à modifier.\n **{newText}** correspond au nouveau texte.",
+                                  colour=0x110b7a)
+        elif com == "reply":
+            embed = discord.Embed(title="La commande reply :",
+                                  description="Exactement comme i!say, cependant i20 répondra à un message.\n L'utilisation est **i!reply [texteÀDire]** en répondant au message à répondre.\n **[texteÀDire]** correspond au texte à dire.",
+                                  colour=0x110b7a)
+
+        # MODERATION COMMANDS
+        elif com == "ban":
+            embed = discord.Embed(title="La commande hybride ban :",
+                                  description="Quelqu’un de pas sage ? B O N K bannissez le. Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!ban [member]**.\n **[member]** correspond au membre à bannir.",
+                                  colour=0x110b7a)
+        elif com == "unban":
+            embed = discord.Embed(title="La commande unban :",
+                                  description="Finalement il a été sage U N B O N K ! Débanissez le. Cette commande est utilisable seulement par les modérateurs.\n\n L'utilisation est **i!unban {user}**.\n **{user}** correspond au __nom et tag__ de l'utilisateur à débannir.",
+                                  colour=0x110b7a)
+        elif com == "kick":
+            embed = discord.Embed(title="La commande kick :",
+                                  description="GET THE FRICK OUT OF HERE, autrement dit faites le partir aussi vite qu'il est venu ! Cette commande est utilisable uniquement par les modérateurs.\n L'utilisation est **i!kick [member]**.\n **[member]** correspond à l'utilisateur à kick.",
+                                  colour=0x110b7a)
+        elif com == "clear":
+            embed = discord.Embed(title="La commande clear :",
+                                  description="Supprimez un certain nombre de messages dans le salon où la commande a été exécutée. Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!clear [number]**.\n **[number]** correspond au nombre de messages.",
+                                  colour=0x110b7a)
+        elif com == "pin":
+            embed = discord.Embed(title="La commande pin :",
+                                  description="Vous avez envie d'épingler un message mais vous êtes sur mobile et, pfiou trop la flemme ? Cette commande est donc trop cool ! Cette commande est utilisable uniquement par les modérateurs.\n L'utilisation est **i!pin** tout en répondant à un message.",
+                                  colour=0x110b7a)
+        elif com == "warn":
+            embed = discord.Embed(title="La commande warn :",
+                                  description="Quelqu'un a fait quelque chose de pas gentil et tu veux qu'il s'en souvienne ? Mets-lui un avertissement, tu verras, c'est rigolo ! Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!warn [member] {reason}**.\n **[member]** correspond au membre a warn.\n **{reason}** correspond à la raison du warn. Si rien n'est spécifié, aucune raison n'est donnée.",
                                   colour=0x110b7a)
         elif com == "removewarn":
-            embed = discord.Embed(title="Remove Warn :",
-                                  description="moooooh vous êtes trop sympa comme modo, excuse quelqu'un lui retirant son dernier warn !\n\n L'utilisation est **i!removewarn [membreÀExcuser]**.",
+            embed = discord.Embed(title="La commande removewarn :",
+                                  description="moooooh vous êtes trop sympa comme modo, excuse quelqu'un lui retirant son dernier warn !\n L'utilisation est **i!removewarn [membreÀExcuser]**.\n **[membreÀExcuser]** correspond au membre à excuser.",
                                   colour=0x110b7a)
+        elif com == "warns":
+            embed = discord.Embed(title="La commande warns :",
+                                  description="Tu veux voir combien de fautes tu as commis sur le serveur ? Utilise la commande !\n L'utilisation est **i!warns {member}**.\n **{member}** correspond au membre dont vous voulez voir les avertissements. Si non précisé, il devient l'utilisateur de la commande.",
+                                  colour=0x110b7a)
+        elif com == "mute":
+            embed = discord.Embed(title="La commande mute :",
+                                  description="Un membre ne respecte pas les règles, mais pas au point de lui mettre un warn ? Mute-le donc grâce à cette commande ! Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!mute [member] [hours] {reason}**.\n **[member]** correspond au membre à mute.\n **[hours]** correspond au nombre d'heures le membre doit être mute.\n **{reason}** correspond à la raison du mute. Si non précisé, aucune raison ne sera donnée.",
+                                  colour=0x110b7a)
+        elif com == "unmute":
+            embed = discord.Embed(title="La commande unmute :",
+                                  description="Tu as mute un membre trop longtemps, et il s'est gentiment excusé ? Retire-lui son mute avec cette commande... Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!unmute [member] {reason}**.\n **[member]** correspond au membre à unmute.\n **{reason}** correspond à la raison de l'unmute. Si non précisé, aucune raison ne sera donnée.",
+                                  colour=0x110b7a)
+        elif com == "record":
+            embed = discord.Embed(title="La commande record :",
+                                  description="Tu es modo et tu veux un pôle de toutes les actions de modération ? Alors, cette commande est faite pour toi ! Cette commande est utilisable seulement par les modérateurs.\n L'utilisation est **i!record [member]**.\n **[member]** correspond au membre dont vous voulez voir le casier.",
+                                  colour=0x110b7a)
+
+        # USEFUL COMMANDS
+        elif com == "invite":
+            embed = discord.Embed(title="La commande invite :",
+                                  description="Générez rapidement un lien d’invitation pour faire augmenter la populace !\n L'utilisation est **i!invite** tout simplement.",
+                                  colour=0x110b7a)
+        elif com == "avatar":
+            embed = discord.Embed(title="La commande avatar :",
+                                  description="Pour prendre l’avatar de quelqu’un ou le sien, mentionnez (ou donnez l'identifiant de) celui dont vous souhaitez la photo de profil.\n L'utilisation est **i!avatar {user}**.\n **{user}** correspond à l'utilisateur (ID ou mention).",
+                                  colour=0x110b7a)
+        elif com == "help":
+            embed = discord.Embed(title="La commande hybride help :",
+                                  description="C'est pas bien dur, vous venez de le faire ! Cette commande affiche ce message !\n L'utilisation est **i!help {commande}**.\n **{commande}** correspond a la commande pour laquelle vous voulez obtenir plus d'informations.",
+                                  colour=0x110b7a)
+        elif com == "poll":
+            embed = discord.Embed(title="La commande hybride poll :",
+                                  description="Êtes-vous le seul à vous poser cette question bête ? Faites-le savoir en entrant la commande. Le sondage sera envoyé dans le salon adéquat. Deux réponses minimum sont attendues.\n L'utilisation est **i!poll [question] [réponse1] [réponse2] {réponse3} {réponse4}**.\n **[question]** correspond à la question du sondage.\n **[réponse1]** correspond à la première réponse.\n **[réponse2]** correspond à la seconde réponse.\n **{réponse3}** correspond à la troisième réponse.\n **{réponse4}** correspond à la quatrième réponse.\n\n PS : Chaque question et réponse doit être entre guillemets.",
+                                  colour=0x110b7a)
+        elif com == "ost":
+            embed = discord.Embed(title="La commande ost :",
+                                  description="Envie d'écouter une OST de jeux vidéos ? Parfait ! La commande vous en passe une super cool !\n L'utilisation est **i!ost** tout simplement.",
+                                  colour=0x110b7a)
+        elif com == "id":
+            embed = discord.Embed(title="La commande id :",
+                                  description="Tu veux utiliser une commande comme **i!date** mais tu n'as pas envie de mentionner la personne car c'est un modérateur ou car tu ne veux pas gêner la personne ? Et bien utilise cette commande, et remplace la mention de la personne par son identifiant. Tu verras ça marche ! \n\n L'utilisation est **i!id [memberName]**.\n **[memberName]** correspond à la mention/le nom du membre.",
+                                  colour=0x110b7a)
+        elif com == "embed":
+            embed = discord.Embed(title="La commande hybride embed :",
+                                  description="Vous avez envie de faire des textes ultra stylax comme celui-ci ? Cette commande est faite pour vous !\n L'utilisation est **i!embed [title] [description] {champ1} {desc_champ1} {champ2} {desc_champ2}**.\n **[title]** correspond au titre de l'embed.\n **[description]** correspond à la description de l'embed.\n **{champ1}** correspond au titre du premier champ de l'embed.\n **{desc_champ1}** correspond à la description du premier champ de l'embed.\n **{champ2}** correspond au titre du second champ de l'embed.\n **{desc_champ2}** correspond à la description du second champ de l'embed.\n\n PS : Les modérateurs peuvent rajouter 'hidename' **__à la fin__** de leur message afin de cacher leur identité.",
+                                  colour=0x110b7a)
+        elif com == "profile":
+            embed = discord.Embed(title="La commande profile :",
+                                  description="En savoir plus sur quelqu'un, c'est toujours sympa non ? Avec cette commande, obtiens une petite fiche !\n L'utilisation est **i!profile [member]**.\n **[member]** correspond au membre dont vous voulez obtenir la fiche.",
+                                  colour=0x110b7a)
+        elif com == "submit":
+            embed = discord.Embed(title="La commande hybride submit :",
+                                  description="Parfois, on a des idées pour i20, et on ne sait pas comment les donner... Eh bien, utilisez cette commande et remplissez le questionnaire. Ça m'aide beaucoup <:Yvlove:968153859103014962> !!\n L'utilisation est **i!submit** tout simplement.",
+                                  colour=0x110b7a)
+        elif com == "source":
+            embed = discord.Embed(title="La commande source :",
+                                  description="\"Il est vachement bien codé ce bot dites donc 👀, si seulement je pouvais en obtenir le code source, mais raah flemme de chercher dans le GitHub, je veux juste UNE commande en particulier... Ah mais attends, mais oui, LA COMMANDE SOURCE !\"\n L'utilisation est **i!source [commande]**.\n **[commande]** correspond à la commande dont vous voulez obtenir le code source.",
+                                  colour=0x110b7a)
+        elif com == "raw":
+            embed = discord.Embed(title="La commande raw :",
+                                  description="Vous aimez bien un emoji du serveur, et vous voulez le même sur le vôtre ? Cette commande est pour vous !\n L'utilisation est **i!raw [emoji]**.\n **[emoji]** correspond à l'emoji dont vous voulez obtenir l'image source.",
+                                  colour=0x110b7a)
+
+        # SYNTAX HELP
+        elif com == "syntax":
+            embed = discord.Embed(title="Aide par rapport à la syntaxe des aides :",
+                                  description="La syntaxe n'est pas bien dure à comprendre !\n **[argument]** : L'argument est obligatoire.\n **{argument}** : L'argument est optionnel.\n Et rien de plus ! Amusez-vous bien avec le bot !",
+                                  colour=0x110b7a)
+
+        # SLASH COMMANDS
+        elif com == "8ball":
+            embed = discord.Embed(title="La commande slash 8ball :",
+                                  description="Une question vous turlupine ? Posez-la donc à i20 !\n L'utilisation est **/8ball [question]**.\n **[question]** correspond à la question que vous voulez poser.",
+                                  colour=0x110b7a)
+        elif com == "math":
+            embed = discord.Embed(title="La commande slash math :",
+                                  description="Vous voulez faire un calcul complexe, mais flemme de chercher la calculette ? Demandez à i20 !\n L'utilisation est **/math [terme1] [operateur] [terme2]**.\n **[terme1]** correspond au premier terme du calcul.\n **[operateur]** correspond à l'opérateur du calcul.\n **[terme2]** correspond au second terme du calcul.\n\n PS : Les opérateurs possibles sont :\n  - **+** : correspond à une addition.\n  - **-** : correspond à une soustraction.\n  - **\*** : correspond à une multiplication.\n  - **\*\*** : correspond à \"puissance\" ou \"exposant\".\n  - **/** : correspond à une division.\n  - **//** : correspond au quotient d'une division euclidéenne.\n  - **%** : correspond au modulo (reste d'une division euclidéenne).",
+                                  colour=0x110b7a)
+        elif com == "hexa":
+            embed = discord.Embed(title="La commande slash hexa :",
+                                  description="Transformer un nombre en hexadécimal, c'est toujours pratique ! i20 peut donc le faire !\n L'utilisation est **/hexa [nombre]**.\n **[nombre]** correspond au nombre à convertir.",
+                                  colour=0x110b7a)
+        elif com == "shorten":
+            embed = discord.Embed(title="La commande slash shorten :",
+                                  description="Parfois, on veut faire un rickroll, mais mettre le lien c'est cramé... Donc utilisez l'API de cutt.ly pour raccourcir et changer vos liens !\n L'utilisation est **/shorten [lien]**.\n **[lien]** correspond au lien à raccourcir.",
+                                  colour=0x110b7a)
+
+
         else:
             await ctx.send(f"La commande {com} n'existe pas !")
             return
@@ -290,5 +269,6 @@ class Help(commands.Cog):
             await ctx.send(embed=embed)
 
 
+# On ajoute le cog au bot.
 async def setup(bot):
     await bot.add_cog(Help(bot))

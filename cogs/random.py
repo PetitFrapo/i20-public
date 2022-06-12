@@ -1,11 +1,12 @@
+# Cette partie du code rassemble les commandes i!ost et i!random.
+
 import datetime
 import random
-
 import discord
 from discord.ext import commands
 from discord import ui
 import requests
-from cogs.CONSTANTS import MyBot, CESTify
+from cogs.cogutils import MyBot, CESTify
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -43,19 +44,73 @@ class Random(commands.Cog):
             await timetime.delete()
             await ctx.send(content=f"Profite bien de ton OST !", file=file)
 
-    @commands.command(name="randommsg", aliases=["rmdmsg", "random"])
-    async def randommsg(self, ctx):
+    @commands.command(name="random", aliases=["rmdmsg", "randommsg", "baba"])
+    async def randommsg(self, ctx, number: int = 1, channel: discord.TextChannel = None):
+        if number < 1:
+            await ctx.send("Tu ne peux pas demander moins d'1 message !")
+            return
+        if channel is None:
+            channel = ctx.channel
         messages = []
         time = await ctx.send("Cette opération peut prendre quelques temps.")
         async with ctx.channel.typing():
-            history = await ctx.channel.history(limit=3000).flatten()
-            for message in history:
+            history = channel.history(limit=1000)
+            async for message in history:
                 messages.append(message.content)
-            msgToSend = random.choice(messages)
+            messages_to_send = random.sample(messages, number)
         await time.delete()
-        await ctx.send(f"Voici un message aléatoire du salon {ctx.channel} !\n")
-        await ctx.send(msgToSend)
+        msg = messages_to_send[0]
+
+        index = messages_to_send.index(msg)
+
+        class AButton(ui.Button):
+            def __init__(self, style, emoji, direct):
+                self.direct = direct
+                self.msg = msg
+                super().__init__(style=style, emoji=emoji)
+
+            async def callback(self, interaction: discord.Interaction):
+                nonlocal index
+
+                if self.direct == "l":
+                    if index == 0:
+                        embed = discord.Embed(title=f"Voici un message aléatoire du salon {channel.name} !",
+                                              description=messages_to_send[len(messages_to_send)-1]).set_footer(text=f"{len(messages_to_send)}/{len(messages_to_send)}")
+                        self.msg = messages_to_send[len(messages_to_send)-1]
+                        index = messages_to_send.index(self.msg)
+                        await interaction.response.edit_message(embed=embed)
+                    else:
+                        embed = discord.Embed(title=f"Voici un message aléatoire du salon {channel.name} !",
+                                              description=messages_to_send[index-1]).set_footer(text=f"{index}/{len(messages_to_send)}")
+                        self.msg = messages_to_send[index-1]
+                        index = messages_to_send.index(self.msg)
+                        await interaction.response.edit_message(embed=embed)
+                else:
+                    if index == len(messages_to_send) - 1:
+                        embed = discord.Embed(title=f"Voici un message aléatoire du salon {channel.name} !",
+                                              description=messages_to_send[0]).set_footer(text=f"1/{len(messages_to_send)}")
+                        self.msg = messages_to_send[0]
+                        index = messages_to_send.index(self.msg)
+                        await interaction.response.edit_message(embed=embed)
+                    else:
+                        embed = discord.Embed(title=f"Voici un message aléatoire du salon {channel.name} !",
+                                              description=messages_to_send[index+1]).set_footer(text=f"{index+2}/{len(messages_to_send)}")
+                        self.msg = messages_to_send[index+1]
+                        index = messages_to_send.index(self.msg)
+                        await interaction.response.edit_message(embed=embed)
+
+        leftbutton = AButton(emoji="⬅️", style=discord.ButtonStyle.primary, direct="l")
+        rightbutton = AButton(emoji="➡️", style=discord.ButtonStyle.primary, direct="r")
+        view = ui.View().add_item(leftbutton).add_item(rightbutton)
+
+        embed = discord.Embed(title=f"Voici un message aléatoire du salon {channel.name} !", description=msg)
+        if number != 1:
+            embed.set_footer(text=f"1/{len(messages_to_send)}")
+            await ctx.send(embed=embed, view=view)
+        else:
+            await ctx.send(embed=embed)
 
 
+# On ajoute le cog au bot.
 async def setup(bot):
     await bot.add_cog(Random(bot))

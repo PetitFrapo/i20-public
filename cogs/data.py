@@ -1,8 +1,10 @@
+# Ne pas le mettre dans le code source public.
+
 import json
 import discord
 from discord.ext import commands
 from discord.ext.commands import Cog
-from cogs.CONSTANTS import MyBot
+from cogs.cogutils import MyBot
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -11,6 +13,8 @@ default_intents.message_content = True
 bot = MyBot(command_prefix="i!", case_insensitive=True, help_command=None, intents=default_intents,
             application_id=853301761572732928)
 
+DATABASE = bot.get_guild(981950727511474266)
+registers_channel = DATABASE.get_channel(981950728056754200)
 
 class Data(Cog):
     def __init__(self, bot):
