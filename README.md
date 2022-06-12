@@ -3,7 +3,7 @@
 
 ---
 
-En version : `2.2.1`
+En version : `2.3`
 Ici, vous trouverez le code complet du bot i20 :
 bot.py est le fichier principal.
 cogs contient les sous-fichiers.
