@@ -4,7 +4,7 @@ from typing import Optional
 import discord
 from discord.ext import commands
 from discord import app_commands
-from cogs.cogutils import MyBotTreeCopyToYvain
+from cogs.cogutils import MyBotTreeCopyToYvain, help_embed_maker
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -74,7 +74,7 @@ class Select(discord.ui.Select):
                              value="*__button__* : Enregistre un bouton dans un tableau. Possède des sous-commandes que voici :\n *__button add__* : Ajoute un bouton dans un tableau.\n *__button remove__* : Retire le bouton associé à l'étiquette donnée.\n *__button send__* : Envoie le bouton associée à l'étiquette donnée.\n *__button show__* : Montre l'entièreté de la table.",
                              inline=False)
             dbhelp.add_field(name="Enregistrer ton annviersaire :",
-                             value="*__birthday__* : Une fonctionnalité _très_ attendue. Et je pèse mes mots. Possède des sous-commandes que voici :\n *__button add__* : Ajoute un bouton dans un tableau.\n *__button remove__* : Retire le bouton associé à l'étiquette donnée.\n *__button send__* : Envoie le bouton associée à l'étiquette donnée.\n *__button show__* : Montre l'entièreté de la table.",
+                             value="*__birthday__* : Une fonctionnalité _très_ attendue. Et je pèse mes mots. Possède des sous-commandes que voici :\n *__birthday set__* : Enregistre ton anniversaire.\n *__birthday remove__* : Retire ton anniversaire de la base de données d'i20.\n *__birthday list__* : Liste les anniversaires du serveur.",
                              inline=False)
             dbhelp.add_field(name="Et, pour mélanger tout ça :",
                              value="*__send__* : Permets d'envoyer un message avec, facultativement, un embed et jusqu'à trois boutons, enregistrés préalablement.",
@@ -93,7 +93,7 @@ class Help(commands.Cog):
 
     @commands.hybrid_command(name="help", aliases=["?"], description="Menu d'aide d'i20.")
     @app_commands.describe(command="La commande dont tu veux obtenir les détails.")
-    async def helpui(self, ctx: commands.Context, command: Optional[str] = ""):
+    async def helpui(self, ctx: commands.Context, *, command: Optional[str] = ""):
         com = command.lower()
         if com == "":
             embed = discord.Embed(title="Menu d'aide d'i20 :",
@@ -259,6 +259,108 @@ class Help(commands.Cog):
             embed = discord.Embed(title="La commande slash shorten :",
                                   description="Parfois, on veut faire un rickroll, mais mettre le lien c'est cramé... Donc utilisez l'API de cutt.ly pour raccourcir et changer vos liens !\n L'utilisation est **/shorten [lien]**.\n **[lien]** correspond au lien à raccourcir.",
                                   colour=0x110b7a)
+
+        # DATA COMMANDS
+        elif com == "register":
+            embed = help_embed_maker("de données register",
+                                     "Parfois on veut noter des choses, mais on oublie. Que ce soit pour réviser des trucs ou juste de se mettre des petits rappels, la commande register peut vous aider ! Veuillez noter qu'elle ne peut pas être utilisée telle quelle car c'est un **groupe** de commandes.",
+                                     use="register [add|remove|get|show]")
+        elif com == "register add":
+            embed = help_embed_maker("de données register add",
+                                     "Sert à ajouter les données dans le tableau. Il faut préciser une clé et une valeur. La clé est en quelque sorte le \"prénom\" de la valeur.",
+                                     use="register add [key] [value]",
+                                     argsuse={"[key]": "au nom de la clé de la valeur", "[value]": "à la valeur"})
+        elif com == "register remove":
+            embed = help_embed_maker("de données register remove",
+                                     "Sert à retirer une valeur dans le tableau.",
+                                     use="register remove [key]",
+                                     argsuse={"[key]": "au nom de la clé de la valeur à retirer"})
+        elif com == "register get":
+            embed = help_embed_maker("de données register remove",
+                                     "Obtiens une valeur du tableau.",
+                                     use="register get [key]",
+                                     argsuse={"[key]": "au nom de la clé de la valeur à obtenir"})
+        elif com == "register show":
+            embed = help_embed_maker("de données register show",
+                                     "Montre l'entièreté de la table à l'utilisateur. Utile pour obtenir le nom des clés avant de les retirer.",
+                                     use="register show tout simplement")
+        elif com == "regembed":
+            embed = help_embed_maker("de données regembed",
+                                     "Vous voulez envoyer des embeds trop cools, plusieurs fois ? Alors enregistrez-le ! Cette commande peut paraître complexe mais elle ne l'est pas ! Veuillez noter qu'elle ne peut pas être utilisée telle quelle car c'est un **groupe** de commandes.",
+                                     use="regembed [add|send|remove|show]")
+        elif com == "regembed add":
+            embed = help_embed_maker("de données regembed add",
+                                     "Ajoute un embed dans votre table d'embeds. Il faut préciser une étiquette. L'étiquette vous servira à retrouver l'embed pour le supprimer ou l'envoyer.",
+                                     use="regembed add [etiquette] [title] [description] {footer} {titrechamp1} {descchamp1} {titrechamp2} {descchamp2}",
+                                     argsuse={"[etiquette]": "à l'étiquette à donner à l'embed", "[title]": "au titre de l'embed",
+                                              "[description]": "à la description de l'embed", "{footer}": "au footer (texte en bas) de l'embed",
+                                              "{titrechamp1}": "au titre du premier champ de l'embed", "{descchamp1}": "à la description du premier champ de l'embed",
+                                              "{titrechamp2}": "au titre du second champ de l'embed", "{descchamp2}": "à la description du second champ de l'embed"})
+        elif com == "regembed remove":
+            embed = help_embed_maker("de données regembed remove",
+                                     "Sert à retirer un embed du tableau.",
+                                     use="regembed remove [etiquette]",
+                                     argsuse={"[etiquette]": "à l'étiquette de l'embed à retirer"})
+        elif com == "regembed send":
+            embed = help_embed_maker("de données regembed send",
+                                     "Envoie un embed du tableau. Il faut l'avoir créé préalablement avec **regembed add**.",
+                                     use="regembed send [etiquette] {texte}",
+                                     argsuse={"[etiquette]": "à l'étiquette de l'embed à envoyer", "{texte}": "au texte à envoyer avec l'embed."})
+        elif com == "regembed show":
+            embed = help_embed_maker("de données regembed show",
+                                     "Montre l'entièreté de la table des embeds à l'utilisateur. Utile pour obtenir le nom des embeds avant de les envoyer.",
+                                     use="regembed show tout simplement")
+        elif com == "button":
+            embed = help_embed_maker("de données button",
+                                     "Vous voulez envoyer des boutons trop cools, qui peuvent rediriger vers des liens, exécuter du code ? Utilisez une des sous-commandes ! Cette commande peut paraître complexe mais elle ne l'est pas ! Veuillez noter qu'elle ne peut pas être utilisée telle quelle car c'est un **groupe** de commandes.",
+                                     use="button [add|send|remove|show]")
+        elif com == "button add":
+            embed = help_embed_maker("de données button add",
+                                     "Ajoute un bouton dans votre table d'embeds. Il faut préciser une étiquette. L'étiquette vous servira à retrouver l'embed pour le supprimer ou l'envoyer.",
+                                     use="button add [etiquette] [label] [style] {url} {code}",
+                                     argsuse={"[etiquette]": "à l'étiquette à donner au bouton", "[label]": "au texte écrit sur le bouton",
+                                              "[style]": "à la couleur du bouton",
+                                              "{url}": "à l'URL auquelle le bouton redirigera (notez que le style sera forcément gris si une URL est précisée)",
+                                              "{code}": "au code qui s'exécutera quand le bouton sera cliqué.\n\n __**Codes possible**__ :\n - 1. envoyer \"message\" : Enverra le message précisé **dans les guillemets** dans le salon du bouton lors d'un clic.\n - 2. mp \"message\" : Enverra le message précisé **dans les guillemets** en message privé à la personne qui clique le bouton.\n - 3. mentionner \"utilisateur\" : Mentionnera l'utilisateur dont le nom est précisé lors d'un clic.\n Veuillez noter que pour les 3 actions peut être rajouté un nombre d'exécutions, en rajoutant \"x\" et le nombre de fois (ex: x10).\n\n Par exemple, on peut mettre \"envoyer \"coucou les chenapans\" x10\", et cela enverra 10 fois le message \"coucou les chenapans.\""})
+        elif com == "button remove":
+            embed = help_embed_maker("de données button remove",
+                                     "Sert à retirer un bouton du tableau.",
+                                     use="button remove [etiquette]",
+                                     argsuse={"[etiquette]": "à l'étiquette du bouton à retirer"})
+        elif com == "button send":
+            embed = help_embed_maker("de données button send",
+                                     "Envoie un bouton du tableau. Il faut l'avoir créé préalablement avec **regembed add**.",
+                                     use="button send [etiquette] {texte}",
+                                     argsuse={"[etiquette]": "à l'étiquette du bouton à envoyer", "{texte}": "au texte à envoyer avec le bouton."})
+        elif com == "button show":
+            embed = help_embed_maker("de données button show",
+                                     "Montre l'entièreté de la table des boutons à l'utilisateur. Utile pour obtenir le nom des boutons avant de les envoyer.",
+                                     use="button show tout simplement")
+        elif com == "birthday":
+            embed = help_embed_maker("de données birthday",
+                                     "Aaaaah, les anniversaires... C'est bien non ? Et bien, ça peut être encore mieux, car i20 peut vous le souhaiter. AVEC DES MESSAGES PERSOS AAAAH TROP BI1!!!! Veuillez noter qu'elle ne peut pas être utilisée telle quelle car c'est un **groupe** de commandes.",
+                                     use="birthday [set|remove|list]")
+        elif com == "birthday set":
+            embed = help_embed_maker("de données birthday set",
+                                     "Ouvre un menu vous permettant de rentrer votre anniversaire. NE MARCHE PAS SUR MOBILE.",
+                                     use="birthday set tout simplement")
+        elif com == "birthday remove":
+            embed = help_embed_maker("de données birthday remove",
+                                     "Retire votre anniversaire de i20, si vous voulez ne plus être notifié. Vous serez aussi bien évidemment retiré de la liste de **birthday list**.",
+                                     use="birthday remove tout simplement")
+        elif com == "birthday list":
+            embed = help_embed_maker("de données birthday list",
+                                     "Liste tous les anniversaires du serveur.",
+                                     use="birthday list tout simplement")
+        elif com == "send":
+            embed = help_embed_maker("hybride send",
+                                     "Permet d'envoyer un message, accompagné d'éléments tels que des embeds ou des boutons. Il faut les créer préalablement avec **regembed add** et **button add**.",
+                                     use="send [message] {embed} {button1} {button2} {button3}",
+                                     argsuse={"[message]": "au texte à envoyer.",
+                                              "{embed}": "à l'étiquette du embed à joindre",
+                                              "{button1}": "au premier bouton à joindre",
+                                              "{button2}": "au second bouton à joindre",
+                                              "{button3}": "au troisième bouton à joindre"})
 
 
         else:

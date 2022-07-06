@@ -14,7 +14,7 @@ from discord.ext import commands
 from discord import app_commands
 from discord.ext.commands import Cog, Context
 from discord import ui
-from cogs.cogutils import MyBot, get_db
+from cogs.cogutils import MyBot, get_db, get_db_no_ctx, CallbackButton
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -189,6 +189,7 @@ class Slash(Cog):
             await interaction.response.send_message("n'essaie même pas")
 
     @commands.hybrid_command(name="send", description="Envoie un message avec un embed, et jusqu'à trois boutons !")
+    @app_commands.describe(message="Le texte à envoyer.", embed="L'embed à envoyer.", button1="Le premier bouton à envoyer.", button2="Le second bouton à envoyer.", button3="Le troisième bouton à envoyer.")
     async def send_rich(self, ctx: Context, message: str, embed: Optional[str] = None, button1: Optional[str] = None, button2: Optional[str] = None, button3: Optional[str] = None):
         has_embed, has_view = False, False
         id = str(ctx.author.id)
@@ -203,7 +204,10 @@ class Slash(Cog):
                     await ctx.send(f"Le bouton **{tag}** n'existe pas !", ephemeral=True)
                     return
                 data = buttondata[id][tag]
-                buttona = ui.Button(label=data["label"], style=eval(data['style']), url=data["url"])
+                if data["callback"] != "":
+                    buttona = CallbackButton(label=data["label"], style=eval(data['style']), url=data["url"], callback=data['callback'])
+                else:
+                    buttona = ui.Button(label=data["label"], style=eval(data['style']), url=data["url"])
                 view.add_item(buttona)
                 has_view = True
 
@@ -223,6 +227,59 @@ class Slash(Cog):
             await ctx.send(message, view=view)
         else:
             await ctx.send(message)
+
+    @send_rich.autocomplete("embed")
+    async def dbsendembedac(self, interaction: discord.Interaction,
+                              current: str) -> List[app_commands.Choice[str]]:
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950865348890644, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
+    @send_rich.autocomplete("button1")
+    async def dbbutton1sendac(self, interaction: discord.Interaction,
+                              current: str) -> List[app_commands.Choice[str]]:
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
+    @send_rich.autocomplete("button2")
+    async def dbbutton2sendac(self, interaction: discord.Interaction,
+                              current: str) -> List[app_commands.Choice[str]]:
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
+    @send_rich.autocomplete("button3")
+    async def dbbutton3sendac(self, interaction: discord.Interaction,
+                              current: str) -> List[app_commands.Choice[str]]:
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
 
 # On ajoute le cog au bot.
 async def setup(bot):

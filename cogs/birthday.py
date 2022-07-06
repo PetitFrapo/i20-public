@@ -21,7 +21,8 @@ class BirthdayDB(discord.ui.Modal):
     date = discord.ui.TextInput(label='Date (format DD/MM)', placeholder="Exemple : 30/04.")
     year = discord.ui.TextInput(label='Année de naissance (NON OBLIGATOIRE)', required=False, placeholder="Exemple : 1998.")
     whattosend = discord.ui.TextInput(label="Un mot à t'envoyer lors de ton anniversaire.", required=False, placeholder="Mets \"{age}\" là où tu veux mettre ton âge.")
-    mention = discord.ui.TextInput(label="Veux-tu être mentionné avec le message ?", required=True, placeholder="\"Oui\" ou \"Non\".")
+    # mention = discord.ui.TextInput(label="Veux-tu être mentionné avec le message ?", required=True, placeholder="\"Oui\" ou \"Non\".")
+    mentiontest = ui.Select(placeholder="Veux-tu être mentionné avec le message ?", options=[discord.SelectOption(label="Oui, je veux être mentionné.", emoji="👍"), discord.SelectOption(label="Non, je ne veux pas être mentionné.", emoji="👎")])
 
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -33,7 +34,7 @@ class BirthdayDB(discord.ui.Modal):
         data[id]["date"] = str(self.date)
         data[id]["year"] = str(self.year)
         data[id]["message"] = str(self.whattosend)
-        data[id]["mention?"] = str(self.mention)
+        data[id]["mention?"] = str(self.mentiontest.values[0])
 
         await dictid.edit(content=str(data))
         await interaction.response.send_message(f'D\'accord, je t\'enverrai le message \"{self.whattosend}\" le {self.date} !', ephemeral=True)
@@ -96,19 +97,20 @@ class BirthdayCog(Cog):
             if datetime.datetime.today().strftime("%d/%m") == date:
                 year = dictionary[id]["year"]
                 message = dictionary[id]["message"]
-                if dictionary[id]["mention?"].lower() in {"oui", "yes", "true", "y"}:
+                if dictionary[id]["mention?"].lower() in {"oui, je veux être mentionné.", "oui"}:
                     mention = True
                 else:
                     mention = False
                 age = int(datetime.datetime.now().strftime("%Y")) - int(year)
                 message = message.replace("{age}", str(age))
+
                 # Le monde d'Yvain
-                # guild = self.bot.get_guild(845026449495818240)
-                # birthday_channel: discord.TextChannel = guild.get_channel(985088152488251443)
+                guild = self.bot.get_guild(845026449495818240)
+                birthday_channel: discord.TextChannel = guild.get_channel(985088152488251443)
 
                 # i20 Playground
-                guild: discord.Guild = self.bot.get_guild(962604741278449724)
-                birthday_channel: discord.TextChannel = guild.get_channel(985090104139857950)
+                # guild: discord.Guild = self.bot.get_guild(962604741278449724)
+                # birthday_channel: discord.TextChannel = guild.get_channel(985090104139857950)
 
                 user = self.bot.get_user(int(id))
                 if mention:

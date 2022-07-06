@@ -3,7 +3,7 @@
 
 # Crédits : PetitFrapo et c'est tout.
 
-# Version: 2.3b
+# Version: 2.3.4
 
 import inspect
 import os
@@ -33,7 +33,8 @@ extensions = (
     "cogs.random",
     "cogs.moderation",
     "cogs.fun",
-    "cogs.useful"
+    "cogs.useful",
+    "cogs.dev"
 )
 
 
@@ -65,11 +66,7 @@ yvainguild = discord.Object(id=845026449495818240)
 
 
 def whichaddin(string: str) -> str:
-    if string[0].lower() in {"a", "e", "i", "o", "u", "y"}:
-        addin = "'"
-    else:
-        addin = "e "
-    return addin
+    return "'" if string[0].lower() in {"a", "e", "i", "o", "u", "y"} else "e "
 
 
 @bot.event
@@ -81,13 +78,19 @@ async def presence():
     await bot.wait_until_ready()
     while not bot.is_closed():
         presences = ["Respectez moi sinon grr", "Je suis un bot créé par PetitFrapo !", "la vi c pa un kiwi",
-                     "mon magnifique code.", "Essaie d'avoir un statut custom ++"]
+                     "mon magnifique code.", "RIP Technoblade :(", "la vie.",
+                     "embêter PetitFrapo avec mes bugs.", "i!submit pour proposer des statuts !", "les vidéos d'Yvain.",
+                     "les Imagine Dragons."]
         game = random.choice(presences)
-        if game != presences[3]:
-            await bot.change_presence(activity=discord.Game(name=game))
-        else:
+        if game == presences[3]:
             await bot.change_presence(activity=discord.Activity(name=game, type=discord.ActivityType.watching))
-        await asyncio.sleep(5)
+        elif game == presences[8]:
+            await bot.change_presence(activity=discord.Streaming(name=game, url="https://www.twitch.tv/lemondedyvain", twitch_name="LeMondeDYvain"))
+        elif game == presences[9]:
+            await bot.change_presence(activity=discord.ActivityType.listening(name=game))
+        else:
+            await bot.change_presence(activity=discord.Game(name=game))
+        await asyncio.sleep(10)
 
 
 @bot.command(name="run")
@@ -129,14 +132,16 @@ async def source(ctx: Context, com: str) -> None:
             code = inspect.getsource(command.callback)
 
     if len(code) > 2000:
-        f = open(f"{com}.txt", "w")
-        f.write(code)
-        f.close()
+        with open(f"{com}.txt", "w") as f:
+            f.write(code)
         file = discord.File(f"{com}.txt")
         await ctx.send(file=file)
         os.system(f"rm {com}.txt")
     else:
         await ctx.send(f"```py\n{code}```")
+
+
+
 
 
 # On lance le bot. La variable TOKEN est une variable cachée dont vous n'avez pas accès.

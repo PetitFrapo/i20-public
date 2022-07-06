@@ -1,12 +1,13 @@
 # Cette partie du code représente tout ce qui est lié aux commandes register, regembed et button.
 # Elles sont très complexes à comprendre, c'est normal d'être perdu.
 
-from typing import Optional, List
+from typing import *
 import discord
+import shlex
 from discord.ext import commands
 from discord.ext.commands import Cog, Context
-from discord import app_commands, ui
-from cogs.cogutils import MyBot, get_db
+from discord import app_commands, ui, Interaction
+from cogs.cogutils import MyBot, get_db, get_db_no_ctx, CallbackButton
 
 default_intents = discord.Intents.all()
 default_intents.members = True
@@ -14,7 +15,6 @@ default_intents.message_content = True
 
 bot = MyBot(command_prefix="i!", case_insensitive=True, help_command=None, intents=default_intents,
             application_id=853301761572732928)
-
 
 class Database(Cog):
     def __init__(self, bot):
@@ -91,7 +91,8 @@ class Database(Cog):
     @modregisterdb.command(name="add_for", description="Rajoute une valeur à ta table.")
     @app_commands.checks.has_role("Modérateurs")
     @commands.has_role("Modérateurs")
-    @app_commands.describe(key="Le nom de la clé", value="La valeur de la clé.", target="La personne à qui tu veux ajouter la clé.")
+    @app_commands.describe(key="Le nom de la clé", value="La valeur de la clé.",
+                           target="La personne à qui tu veux ajouter la clé.")
     async def add_for_db(self, ctx: Context, target: discord.Member, key: str, value: str):
         id = str(target.id)
         data, dictid = await get_db(ctx, self.bot, 981950728056754200, id)
@@ -161,8 +162,12 @@ class Database(Cog):
             await ctx.send("Entrez une sous-commande.")
 
     @button_db.command(name="add", description="Ajoute un bouton à ta table personnelle.")
-    @app_commands.describe(etiquette="Le nom du bouton, pour le réutiliser.", label="Le texte sur le bouton.", style="Le style du bouton.", url="L'URL du bouton.")
-    async def add_btn_db(self, ctx: Context, etiquette: str, label: str, style: str, url: Optional[str]):
+    @app_commands.describe(etiquette="Le nom du bouton, pour le réutiliser.", label="Le texte sur le bouton.",
+                           style="Le style du bouton.", url="L'URL du bouton.",
+                           code="Le code à exécuter quand le bouton est cliqué. i!help button add pour voir les "
+                                "possibilités.")
+    async def add_btn_db(self, ctx: Context, etiquette: str, label: str, style: str, url: Optional[str],
+                         code: Optional[str] = ""):
         id = str(ctx.author.id)
         data, dictid = await get_db(ctx, self.bot, 981950835036659742, id)
         if style == "vert":
@@ -176,7 +181,7 @@ class Database(Cog):
         else:
             await ctx.send("Le style rentré n'est pas correct !", ephemeral=True)
             return
-        data[id][etiquette] = {"label": label, "style": style, "url": url}
+        data[id][etiquette] = {"label": label, "style": style, "url": url, "callback": code}
         try:
             await dictid.edit(content=str(data))
         except discord.HTTPException:
@@ -184,13 +189,13 @@ class Database(Cog):
         await ctx.send(f"Le bouton **{etiquette}** a bien été ajouté à ta table personnelle !")
 
     @add_btn_db.autocomplete("style")
-    async def style_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+    async def style_autocomplete(self, interaction: discord.Interaction, current: str) -> List[
+        app_commands.Choice[str]]:
         styles = ["blurple", "vert", "rouge", "url", "gris"]
         return [
             app_commands.Choice(name=style, value=style)
             for style in styles if current.lower() in style.lower()
         ]
-
 
     @button_db.command(name="send", description="Envoie un de tes boutons enregistrés.")
     @app_commands.describe(etiquette="L'étiquette du bouton.", texte="Le message à envoyer avant le bouton.")
@@ -202,13 +207,31 @@ class Database(Cog):
             return
         buttondata = data[id][etiquette]
 
-        button = ui.Button(label=buttondata["label"], style=eval(buttondata["style"]), url=buttondata["url"])
+        if buttondata["callback"] != "":
+            button = CallbackButton(label=buttondata["label"], style=eval(buttondata["style"]), url=buttondata["url"], callback=buttondata["callback"])
+        else:
+            button = ui.Button(label=buttondata["label"], style=eval(buttondata["style"]), url=buttondata["url"])
         view = ui.View().add_item(button)
         if texte != "":
             await ctx.send(texte, view=view)
         else:
             await ctx.send(view=view)
 
+
+
+    @send_btn_db.autocomplete("etiquette")
+    async def dbbtnac(self, interaction: discord.Interaction,
+                      current: str) -> List[app_commands.Choice[str]]:
+        # sourcery skip
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
 
     @button_db.command(name="remove", description="Retire un bouton de ta table de boutons.")
     @app_commands.describe(etiquette="L'étiquette du bouton.")
@@ -232,8 +255,25 @@ class Database(Cog):
         for tag in data[id].keys():
             i += 1
             tags.append(f"{i}. {tag}")
-        embed = discord.Embed(title=f"Boutons de {ctx.author.name}", description="\n".join(tags), color=discord.Colour.random())
+        embed = discord.Embed(title=f"Boutons de {ctx.author.name}", description="\n".join(tags),
+                              color=discord.Colour.random())
         await ctx.send(embed=embed)
+
+    @rem_btn_db.autocomplete("etiquette")
+    async def rmbtndb(self, interaction: discord.Interaction,
+                      current: str) -> List[app_commands.Choice[str]]:
+        # sourcery skip
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
+
 
     @commands.hybrid_group(name="regembed")
     async def regembed(self, ctx: Context):
@@ -241,9 +281,15 @@ class Database(Cog):
             await ctx.send("Entrez une sous commande.")
 
     @regembed.command(name="add", description="Ajoute un embed à ta table.")
-    @app_commands.describe(title="Le titre de l'embed.", description="La description de l'embed.", footer="Le texte en bas de l'embed.", titrechamp1="Le titre du premier champ.", descchamp1="La description du premier champ.", titrechamp2="Le titre du deuxième champ.", descchamp2="La description du deuxième champ.")
-    async def db_ebd_add(self, ctx: Context, etiquette: str, title: str, description: str, footer: Optional[str] = None, titrechamp1: Optional[str] = None, descchamp1: Optional[str] = None, titrechamp2: Optional[str] = None, descchamp2: Optional[str] = None):
-        if (titrechamp1 is not None and descchamp1 is None) or (titrechamp2 is not None and descchamp2 is None) or (titrechamp1 is None and descchamp1 is not None) or (titrechamp2 is None and descchamp2 is not None):
+    @app_commands.describe(title="Le titre de l'embed.", description="La description de l'embed.",
+                           footer="Le texte en bas de l'embed.", titrechamp1="Le titre du premier champ.",
+                           descchamp1="La description du premier champ.", titrechamp2="Le titre du deuxième champ.",
+                           descchamp2="La description du deuxième champ.")
+    async def db_ebd_add(self, ctx: Context, etiquette: str, title: str, description: str, footer: Optional[str] = None,
+                         titrechamp1: Optional[str] = None, descchamp1: Optional[str] = None,
+                         titrechamp2: Optional[str] = None, descchamp2: Optional[str] = None):
+        if (titrechamp1 is not None and descchamp1 is None) or (titrechamp2 is not None and descchamp2 is None) or (
+                titrechamp1 is None and descchamp1 is not None) or (titrechamp2 is None and descchamp2 is not None):
             await ctx.send("Veuillez préciser le titre ET la valeur d'un champ.")
         id = str(ctx.author.id)
         data, dictid = await get_db(ctx, self.bot, 981950865348890644, id)
@@ -277,6 +323,19 @@ class Database(Cog):
         embed = discord.Embed().from_dict(embeddata)
         await ctx.send(texte, embed=embed)
 
+    @db_ebd_send.autocomplete("etiquette")
+    async def dbembedaddautoc(self, interaction: discord.Interaction,
+                              current: str) -> List[app_commands.Choice[str]]:
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950865348890644, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
     @regembed.command(name="remove", description="Retire un embed de ta table.")
     @app_commands.describe(etiquette="L'etiquette de l'embed à retirer.")
     async def db_ebd_rem(self, ctx: Context, etiquette: str):
@@ -290,16 +349,31 @@ class Database(Cog):
         await dictid.edit(content=str(data))
         await ctx.send(f"L'embed **{etiquette}** a bien été retiré de ta table !")
 
+    @db_ebd_rem.autocomplete("etiquette")
+    async def rmbtndb(self, interaction: discord.Interaction,
+                      current: str) -> List[app_commands.Choice[str]]:
+        # sourcery skip
+        id = str(interaction.user.id)
+        data, dictid = await get_db_no_ctx(bot=self.bot, channel_id=981950835036659742, id=id)
+        tags = []
+        for key in data[id].keys():
+            tags.append(key)
+        return [
+            app_commands.Choice(name=tag, value=tag)
+            for tag in tags if current.lower() in tag.lower()
+        ]
+
     @regembed.command(name="show", description="Montre les embeds de ta table.")
     async def db_ebd_show(self, ctx: Context):
         id = str(ctx.author.id)
-        data, dictid = await get_db(ctx, self.bot, 981950835036659742, id)
+        data, dictid = await get_db(ctx, self.bot, 981950865348890644, id)
         tags = []
         i = 0
         for tag in data[id].keys():
             i += 1
             tags.append(f"{i}. {tag}")
-        embed = discord.Embed(title=f"Embeds de {ctx.author.name}", description="\n".join(tags), color=discord.Colour.random())
+        embed = discord.Embed(title=f"Embeds de {ctx.author.name}", description="\n".join(tags),
+                              color=discord.Colour.random())
         await ctx.send(embed=embed)
 
 

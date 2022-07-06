@@ -23,21 +23,22 @@ timezone = pytz.timezone("Europe/Paris")
 class Submit(ui.Modal, title='Soumettre une idée :'):
     def __init__(self, guild):
         self.guild = guild
+        self.isanonymous = True
         super().__init__()
+
     command = discord.ui.TextInput(label='Commande concernée (peut être une nouvelle) :', placeholder="Exemple : quote.", style=discord.TextStyle.short, required=True)
     fdescr = discord.ui.TextInput(label='Modification proposée (rapide) :', required=True, placeholder="Exemple : Nouvelle citation.", style=discord.TextStyle.short)
     ldescr = discord.ui.TextInput(label="Description longue :", required=True, placeholder="Exemple : Je veux rajouter blabla car...", style=discord.TextStyle.paragraph)
-    anonymous = discord.ui.TextInput(label="Veux-tu que ton nom s'affiche ?", required=True, placeholder="Oui ou Non.")
+    anonytest = ui.Select(placeholder="Veux-tu que ton nom s'affiche ?", options=[discord.SelectOption(label="Oui, je veux que mon nom s'affiche.", emoji="👍"), discord.SelectOption(label="Non, je veux rester anonyme.", emoji="👎")])
 
     async def on_submit(self, interaction: discord.Interaction):
-        if str(self.anonymous).lower() == "oui":
-            self.anonymous = True
-        elif str(self.anonymous).lower() == "non":
-            self.anonymous = False
-        else:
-            self.anonymous = True
+        if str(self.anonytest.values[0]).lower() == "oui, je veux que mon nom s'affiche.":
+            self.isanonymous = False
+        elif str(self.anonytest.values[0]).lower() == "non, je veux rester anonyme.":
+            self.isanonymous = True
+
         channel = self.guild.get_channel(982644476436693032)
-        embed = discord.Embed(title=f'''{interaction.user.name if self.anonymous else "Quelqu'un"} a soumis quelque chose !\n''', description=f"Commande : {self.command}", timestamp=CESTify(datetime.datetime.now()), colour=discord.Colour.random())
+        embed = discord.Embed(title=f'''{interaction.user.name if not self.isanonymous else "Quelqu'un"} a soumis quelque chose !\n''', description=f"Commande : {self.command}", timestamp=CESTify(datetime.datetime.now()), colour=discord.Colour.random())
         embed.add_field(name="Description courte :", value=self.fdescr, inline=False)
         embed.add_field(name="Longue descritpion", value=self.ldescr, inline=False)
         await channel.send(f"{self.guild.get_member(558317667505668098).mention}", embed=embed)
@@ -52,6 +53,7 @@ class UI(Cog):
     @commands.hybrid_command(name="submit", description="Proposez vos idées pour i20 !")
     async def submit_ideas(self, ctx: Context):
         send_to_guild = self.bot.get_guild(981950727511474266)
+
         class SubmitIdeasButton(ui.Button):
             def __init__(self, label, style):
                 super().__init__(label=label, style=style)
